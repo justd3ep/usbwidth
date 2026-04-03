@@ -1,4 +1,4 @@
-import { getSystemInfo as getLinuxSystemInfo, getUsbDevices as getLinuxUsbDevices } from './linuxDetector.js'
+  import { getSystemInfo as getLinuxSystemInfo, getUsbDevices as getLinuxUsbDevices } from './linuxDetector.js'
 
 export async function detectHardware() {
   try {
@@ -6,13 +6,12 @@ export async function detectHardware() {
       getLinuxSystemInfo(),
       getLinuxUsbDevices(),
     ])
-    return { systemInfo, usbDevices, isMock: false, error: null }
+    return { systemInfo, usbDevices, error: null }
   } catch (err) {
     console.error('[HardwareDetector] Linux/sysfs failed:', err.message)
     return { 
       systemInfo: {}, 
       usbDevices: [], 
-      isMock: false, 
       error: `Linux hardware read failed: ${err.message}` 
     }
   }

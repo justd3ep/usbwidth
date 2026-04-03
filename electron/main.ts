@@ -45,7 +45,6 @@ function createWindow() {
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
-    win.webContents.openDevTools()
   } else {
     win.loadFile(path.join(RENDERER_DIST, 'index.html'))
   }
@@ -61,10 +60,10 @@ async function getTopologyData() {
   const { runRules } = await import('./ruleEngine.js')
   const { generateRecommendations } = await import('./recommendationEngine.js')
 
-  const { systemInfo, usbDevices, isMock, error } = await detectHardware()
-  const tree = buildTopology(usbDevices)
-  const flat = flattenDevices(tree)
-  const classified = classifyAll(flat)
+  const { systemInfo, usbDevices, error } = await detectHardware() as { systemInfo: any, usbDevices: any[], error: any }
+  const tree = buildTopology(usbDevices) as any[]
+  const flat = flattenDevices(tree) as any[]
+  const classified = classifyAll(flat) as any[]
   const warnings = runRules(tree, classified)
   const recommendations = generateRecommendations(warnings)
 
@@ -74,7 +73,6 @@ async function getTopologyData() {
     classifiedDevices: classified,
     warnings,
     recommendations,
-    isMock,
     error: error || null,
   }
 }

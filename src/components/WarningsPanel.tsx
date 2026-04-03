@@ -14,6 +14,11 @@ interface Warning {
   detail: string
   affectedIds: string[]
   deviceName: string
+  source?: string
+  portCapability?: number
+  deviceCapability?: number
+  connectionPath?: string
+  verdict?: string
 }
 
 interface Props {
@@ -29,16 +34,36 @@ function WarningCard({ warning }: { warning: Warning }) {
       <div className="wc-header" onClick={() => setOpen(o => !o)}>
         <span className="wc-sev-icon">{meta.icon}</span>
         <div className="wc-main">
-          <span className="wc-title">{warning.title}</span>
-          <span className="wc-device">{warning.deviceName}</span>
+          <span className="wc-deviceName">{warning.deviceName}</span>
+          <span className="wc-title">→ {warning.title}</span>
         </div>
         <span className="wc-chevron">{open ? '▴' : '▾'}</span>
       </div>
       {open && (
-        <div className="wc-detail">
-          <p>{warning.detail}</p>
+        <div className="wc-body">
+          <p className="wc-detail-text">{warning.detail}</p>
+          
+          <div className="wc-metrics-grid">
+            <div className="wc-metric">
+              <span className="wc-metric-label">Port Capability</span>
+              <span className="wc-metric-value">{warning.portCapability ? (warning.portCapability >= 5000 ? `USB 3.x (${warning.portCapability / 1000} Gbps)` : `USB 2.0 (${warning.portCapability} Mbps)`) : 'Unknown'}</span>
+            </div>
+            <div className="wc-metric">
+              <span className="wc-metric-label">Device Capability</span>
+              <span className="wc-metric-value">{warning.deviceCapability ? (warning.deviceCapability >= 5000 ? `USB 3.x (${warning.deviceCapability / 1000} Gbps)` : `USB 2.0 (${warning.deviceCapability} Mbps)`) : 'Unknown'}</span>
+            </div>
+            <div className="wc-metric">
+              <span className="wc-metric-label">Connection Path</span>
+              <span className="wc-metric-value">{warning.connectionPath || 'Direct'}</span>
+            </div>
+          </div>
+          
+          <div className="wc-verdict">
+            <span>{warning.verdict || 'Bottleneck Source: UNKNOWN'}</span>
+          </div>
+
           <div className="wc-affected">
-            <span className="wc-aff-label">USB Port(s):</span>
+            <span className="wc-aff-label">Sysfs ID:</span>
             {warning.affectedIds.map(id => (
               <code key={id} className="wc-aff-id" title={`Sysfs Path: ${id}`}>
                 {id.split('\\').pop()}
@@ -68,9 +93,10 @@ export default function WarningsPanel({ warnings }: Props) {
 
       <div className="wp-list">
         {warnings.length === 0 ? (
-          <div className="wp-empty">
-            <span className="wp-empty-icon">✅</span>
-            <p>No bottlenecks detected. Your USB topology looks healthy.</p>
+          <div className="wp-empty" style={{ padding: '2rem 1rem', textAlign: 'center' }}>
+            <span className="wp-empty-icon" style={{ fontSize: '2.5rem', display: 'block', marginBottom: '0.5rem' }}>✅</span>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-color)' }}>Everything looks good</h3>
+            <p style={{ margin: 0, opacity: 0.8, lineHeight: 1.5 }}>No performance issues detected. Your setup is optimal, and no changes are needed.</p>
           </div>
         ) : (
           warnings.map(w => <WarningCard key={w.id} warning={w} />)

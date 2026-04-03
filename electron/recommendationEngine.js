@@ -23,36 +23,47 @@ export function generateRecommendations(issues) {
   _recCounter = 0
   const recs = []
 
-  const hasWarning = issues.some(i => i.status === 'WARNING')
-  const hasLimited = issues.some(i => i.status === 'LIMITED')
+  const hasDeviceLimitation = issues.some(i => i.source === 'DEVICE_LIMITATION')
+  const hasHubLimitation = issues.some(i => i.source === 'HUB_LIMITATION')
+  const hasSystemLimitation = issues.some(i => i.source === 'SYSTEM_LIMITATION')
 
-  if (hasWarning) {
+  if (hasSystemLimitation) {
     recs.push({
       id: makeId(),
       priorityTag: 'IMPORTANT',
-      title: 'Optimize High-Speed Devices',
+      title: 'Reduce Overall System Load',
       steps: [
-        'Connect high-speed devices directly to the laptop instead of a hub',
-        'Use a USB 3.x or higher port for storage devices'
+        'Disconnect high-bandwidth devices when not in use',
+        'Move some devices to a different internal controller if possible'
       ]
     })
-  }
-
-  // If there are limited items but no critical warnings
-  if (hasLimited && !hasWarning) {
-    recs.push({
-      id: makeId(),
-      priorityTag: 'OPTIONAL',
-      title: 'Setup Optimization Available',
-      steps: [
-        'Current setup is acceptable, but can be optimized for better performance',
-        'Moving medium-tier devices to USB 3 ports can reduce systemic USB 2.0 controller load'
-      ]
-    })
+  } else if (hasHubLimitation || hasDeviceLimitation) {
+    if (hasHubLimitation) {
+       recs.push({
+        id: makeId(),
+        priorityTag: 'IMPORTANT',
+        title: 'Optimize Hub Connections',
+        steps: [
+          'Connect high-speed devices directly instead of using a hub',
+          'Use a powered hub if power delivery is limiting bandwidth'
+        ]
+      })
+    }
+    if (hasDeviceLimitation) {
+      recs.push({
+        id: makeId(),
+        priorityTag: 'OPTIONAL',
+        title: 'Upgrade Slower Devices',
+        steps: [
+          'Use a USB 3.0+ device to achieve higher speeds',
+          'Move device to a lower-tier port to free up high-speed ports for demanding devices'
+        ]
+      })
+    }
   }
 
   // If no bottlenecks or limitations
-  if (!hasWarning && !hasLimited) {
+  if (!hasSystemLimitation && !hasHubLimitation && !hasDeviceLimitation) {
     recs.push({
       id: makeId(),
       priorityTag: 'INFO',

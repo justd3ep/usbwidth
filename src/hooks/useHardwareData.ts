@@ -6,7 +6,6 @@ export interface TopologyData {
   classifiedDevices: any[]
   warnings: any[]
   recommendations: any[]
-  isMock: boolean
   error: string | null
 }
 

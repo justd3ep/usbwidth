@@ -33,18 +33,17 @@ function createWindow() {
   });
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
-    win.webContents.openDevTools();
   } else {
     win.loadFile(path.join(RENDERER_DIST, "index.html"));
   }
 }
 async function getTopologyData() {
-  const { detectHardware } = await import("./hardwareDetector-BBeIC5IF.js");
+  const { detectHardware } = await import("./hardwareDetector-Ch9r5p-Q.js");
   const { buildTopology, flattenDevices } = await import("./topologyBuilder-Cu8T7aj6.js");
   const { classifyAll } = await import("./classifier-D_aOqHLF.js");
-  const { runRules } = await import("./ruleEngine-BOuxOX2g.js");
-  const { generateRecommendations } = await import("./recommendationEngine-DNVdxfCx.js");
-  const { systemInfo, usbDevices, isMock, error } = await detectHardware();
+  const { runRules } = await import("./ruleEngine-UOesDFWe.js");
+  const { generateRecommendations } = await import("./recommendationEngine-DR2QFinr.js");
+  const { systemInfo, usbDevices, error } = await detectHardware();
   const tree = buildTopology(usbDevices);
   const flat = flattenDevices(tree);
   const classified = classifyAll(flat);
@@ -56,7 +55,6 @@ async function getTopologyData() {
     classifiedDevices: classified,
     warnings,
     recommendations,
-    isMock,
     error: error || null
   };
 }

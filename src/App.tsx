@@ -17,19 +17,14 @@ export default function App() {
       {/* ── Header ── */}
       <header className="app-header">
         <div className="app-header-left">
-          <span className="app-logo">⚡</span>
+          <span className="app-logo"></span>
           <div>
-            <h1 className="app-title">Hardware Topology &amp; Bottleneck Advisor</h1>
-            <p className="app-subtitle">USB controller analysis · Device hierarchy · Performance warnings</p>
+            <h1 className="app-title">usbWidth</h1>
+            <p className="app-subtitle">USB system analysis · Device hierarchy · Performance optimization</p>
           </div>
         </div>
         <div className="app-header-right">
-          {data?.isMock && (
-            <div className="app-demo-notice" title="Running with simulated hardware data. Real data is read on Linux.">
-              🧪 Demo Mode — Simulated Data
-            </div>
-          )}
-          {!data?.isMock && data && (
+          {data && (
             <div className="app-platform-notice">
               🐧 Live Linux Data
             </div>
@@ -65,7 +60,7 @@ export default function App() {
           <div className="app-state-screen">
             <div className="app-spinner" />
             <h2>Scanning hardware…</h2>
-            <p>Querying USB controllers, hubs, and devices.</p>
+            <p>Querying USB systems, hubs, and devices.</p>
           </div>
         )}
 
@@ -79,34 +74,99 @@ export default function App() {
         )}
 
         {loadState === 'success' && data && (
-          <div className="app-dashboard">
-            {/* Top row: system info */}
-            <div className="dash-top">
-              <SystemInfoCard info={data.systemInfo} isMock={data.isMock} />
-              <div className="dash-stats">
-                <StatTile icon="🔌" label="Controllers" value={data.tree.length} />
-                <StatTile icon="📦" label="Devices" value={data.classifiedDevices.length} />
-                <StatTile
-                  icon="⚠️"
-                  label="Issues"
-                  value={data.warnings.length}
-                  accent={data.warnings.length > 0 ? 'red' : 'green'}
-                />
-                <StatTile icon="💡" label="Actions" value={data.recommendations.length} />
-              </div>
-            </div>
+          (() => {
+            let systemHealth = 'optimal';
+            let statusTitle = 'System Operating Normally';
+            let statusSubtext = 'All connected devices are functionally optimized for the currently available bandwidth.';
+            let statusIcon = '🟢';
 
-            {/* Main grid */}
-            <div className="dash-grid">
-              <div className="dash-left">
-                <TopologyTree tree={data.tree} warnings={data.warnings} />
+            const hasSystem = data.warnings.some((w: any) => w.source === 'SYSTEM_LIMITATION');
+            const hasHub = data.warnings.some((w: any) => w.source === 'HUB_LIMITATION');
+            const hasDevice = data.warnings.some((w: any) => w.source === 'DEVICE_LIMITATION');
+
+            if (hasSystem) {
+              systemHealth = 'bottleneck';
+              statusTitle = 'System-Level Bottleneck Detected';
+              statusSubtext = 'System controller bandwidth is saturated. Significant performance impacts expected.';
+              statusIcon = '🔴';
+            } else if (hasHub || hasDevice) {
+              systemHealth = 'limited';
+              statusTitle = 'Performance Limited by Connected Devices';
+              statusSubtext = hasHub
+                ? 'Bandwidth is shared across multiple devices via a hub.'
+                : 'Some connected devices are operating below the port\'s maximum capability.';
+              statusIcon = '🟡';
+            }
+
+            return (
+              <div className="app-dashboard">
+                {/* Top Banner: System Status Summary */}
+                <div className={`dash-status-banner status-${systemHealth}`} style={{ padding: '1rem 1.5rem', borderRadius: '8px', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <span style={{ fontSize: '2rem' }}>{statusIcon}</span>
+                  <div>
+                    <h2 style={{ margin: '0 0 0.25rem 0', fontSize: '1.25rem', color: 'var(--text-primary)' }}>
+                      {statusTitle}
+                    </h2>
+                    <p style={{ margin: 0, opacity: 0.8, fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
+                      {statusSubtext}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Top row: system info & Performance Overview */}
+                <div className="dash-top">
+                  <SystemInfoCard info={data.systemInfo} />
+
+                  <div className="dash-overview-card" style={{ flex: 1, minWidth: '280px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', padding: '1.25rem', display: 'flex', flexDirection: 'column' }}>
+                    <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span>📊</span> Performance Overview
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.85rem', flex: 1 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Total Devices:</span>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{data.classifiedDevices.filter(d => !d.isInternal).length || data.classifiedDevices.length}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Fully Optimized:</span>
+                        <span style={{ fontWeight: 600, color: '#4ade80' }}>
+                          {data.classifiedDevices.filter(d => d.status === 'NORMAL' && !d.isInternal).length}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Limited by Device:</span>
+                        <span style={{ fontWeight: 600, color: '#fbbf24' }}>
+                          {data.warnings.filter(w => w.source === 'DEVICE_LIMITATION').length}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Limited by Hub:</span>
+                        <span style={{ fontWeight: 600, color: '#fbbf24' }}>
+                          {data.warnings.filter(w => w.source === 'HUB_LIMITATION').length}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>System Bottlenecks:</span>
+                        <span style={{ fontWeight: 600, color: data.warnings.some(w => w.source === 'SYSTEM_LIMITATION') ? '#f87171' : 'var(--text-primary)' }}>
+                          {data.warnings.filter(w => w.source === 'SYSTEM_LIMITATION').length}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Main grid */}
+                <div className="dash-grid">
+                  <div className="dash-left">
+                    <TopologyTree tree={data.tree} warnings={data.warnings} />
+                  </div>
+                  <div className="dash-right">
+                    <WarningsPanel warnings={data.warnings} />
+                    <RecommendationsPanel recommendations={data.recommendations} />
+                  </div>
+                </div>
               </div>
-              <div className="dash-right">
-                <WarningsPanel warnings={data.warnings} />
-                <RecommendationsPanel recommendations={data.recommendations} />
-              </div>
-            </div>
-          </div>
+            )
+          })()
         )}
       </main>
 

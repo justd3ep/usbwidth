@@ -102,6 +102,33 @@
   transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
 }
 
+.app-refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.refresh-icon {
+  font-size: 1rem;
+  display: inline-block;
+  transition: transform 0.3s;
+}
+
+.dash-status-banner {
+  border: 1px solid transparent;
+}
+.dash-status-banner.status-optimal {
+  background-color: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+.dash-status-banner.status-limited {
+  background-color: rgba(245, 158, 11, 0.08); /* Yellow tint */
+  border-color: rgba(245, 158, 11, 0.2);
+}
+.dash-status-banner.status-bottleneck {
+  background-color: rgba(239, 68, 68, 0.08); /* Red tint */
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
 .app-refresh-btn:hover:not(:disabled) {
   background: rgba(59,130,246,0.22);
   box-shadow: 0 0 12px rgba(59,130,246,0.25);
