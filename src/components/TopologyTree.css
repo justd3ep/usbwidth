@@ -258,3 +258,278 @@
   color: #f87171;
   border: 1px solid rgba(239, 68, 68, 0.35);
 }
+
+/* ─── Section Headers ─────────────────────────────────────────── */
+
+.tn-section {
+  margin-bottom: 1.25rem;
+}
+
+.tn-section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.5rem 0 0.4rem 0;
+  margin-bottom: 0.25rem;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+.tn-section-header:hover .tn-section-label {
+  color: var(--text-primary);
+}
+
+.tn-section-toggle {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  width: 0.8rem;
+  flex-shrink: 0;
+}
+
+.tn-section-label-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.tn-section-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: color 0.15s;
+}
+
+.tn-section-note {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+
+.tn-section-count {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  flex-shrink: 0;
+}
+
+.tn-section-body {
+  padding-top: 0.15rem;
+}
+
+/* ─── Internal Section ───────────────────────────────────────── */
+
+.tn-section-internal .tn-section-header-internal {
+  cursor: default;
+}
+
+.tn-section-internal .tn-section-label {
+  color: var(--text-muted);
+}
+
+/* ─── Hub Group ───────────────────────────────────────────────── */
+
+.tn-hub-group {
+  margin: 0.4rem 0 0.5rem 0;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 8px;
+  background: rgba(139, 92, 246, 0.04);
+  overflow: hidden;
+}
+
+.tn-hub-group.tn-hub-warned {
+  border-color: rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.04);
+}
+
+.tn-hub-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.12);
+}
+
+.tn-hub-header:hover {
+  background: rgba(139, 92, 246, 0.06);
+}
+
+.tn-hub-toggle {
+  font-size: 0.7rem;
+  color: #a78bfa;
+  width: 0.8rem;
+  flex-shrink: 0;
+}
+
+.tn-hub-icon {
+  font-size: 1rem;
+  color: #a78bfa;
+  flex-shrink: 0;
+}
+
+.tn-hub-label-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1;
+}
+
+.tn-hub-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #c4b5fd;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tn-hub-tag {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.2);
+  color: #a78bfa;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  flex-shrink: 0;
+}
+
+.tn-hub-speed {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+.tn-hub-note {
+  font-size: 0.65rem;
+  color: #a78bfa;
+  opacity: 0.7;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.tn-hub-children {
+  padding: 0.25rem 0.5rem 0.25rem 1.5rem;
+  border-left: 2px solid rgba(139, 92, 246, 0.15);
+  margin-left: 1.25rem;
+}
+
+.tn-hub-empty {
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* ─── Device Row (leaf) ──────────────────────────────────────── */
+
+.tn-row-leaf {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.5fr) 120px 140px 130px 2fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.35rem 0;
+  border-radius: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  transition: background 0.15s;
+}
+
+.tn-row-leaf:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+/* ─── Internal / External tags ───────────────────────────────── */
+
+.tn-name-line {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  overflow: hidden;
+}
+
+.tn-origin-tag {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.tag-external {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.tag-internal {
+  background: rgba(100, 116, 139, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.summary-muted { color: var(--text-muted); }
+.summary-ok    { color: var(--text-muted); opacity: 0.7; }
+
+/* ─── Hub speed badge variants ───────────────────────────────── */
+.tn-hub-speed-badge {
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.hub-speed-std {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.hub-speed-fast {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+/* ─── Internal device row ────────────────────────────────────── */
+.tn-row-internal {
+  opacity: 0.75;
+}
+
+/* ─── Hub internal child note ────────────────────────────────── */
+.tn-hub-internal-note {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 0.3rem 0.5rem;
+  opacity: 0.7;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  margin-top: 0.15rem;
+}
+
+/* ─── Dimmed section (built-in) ──────────────────────────────── */
+.tn-section-dimmed .tn-section-label {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.tn-section-dimmed .tn-section-body {
+  opacity: 0.8;
+}
+
+/* ─── Static (non-collapsible) section header ────────────────── */
+.tn-section-header-static {
+  cursor: default;
+}
+

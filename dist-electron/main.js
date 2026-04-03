@@ -42,7 +42,7 @@ async function getTopologyData() {
   const { buildTopology, flattenDevices } = await import("./topologyBuilder-Cu8T7aj6.js");
   const { classifyAll } = await import("./classifier-D_aOqHLF.js");
   const { runRules } = await import("./ruleEngine-UOesDFWe.js");
-  const { generateRecommendations } = await import("./recommendationEngine-DR2QFinr.js");
+  const { generateRecommendations } = await import("./recommendationEngine-syzm7sQg.js");
   const { systemInfo, usbDevices, error } = await detectHardware();
   const tree = buildTopology(usbDevices);
   const flat = flattenDevices(tree);

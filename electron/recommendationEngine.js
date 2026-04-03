@@ -31,21 +31,21 @@ export function generateRecommendations(issues) {
     recs.push({
       id: makeId(),
       priorityTag: 'IMPORTANT',
-      title: 'Reduce Overall System Load',
+      title: 'USB Controller Load Is High',
       steps: [
-        'Disconnect high-bandwidth devices when not in use',
-        'Move some devices to a different internal controller if possible'
+        'Disconnect unused high-bandwidth devices to reduce controller load',
+        'If available, try moving some devices to a different USB controller'
       ]
     })
   } else if (hasHubLimitation || hasDeviceLimitation) {
     if (hasHubLimitation) {
-       recs.push({
+      recs.push({
         id: makeId(),
-        priorityTag: 'IMPORTANT',
-        title: 'Optimize Hub Connections',
+        priorityTag: 'OPTIONAL',
+        title: 'Improve Hub Performance (Optional)',
         steps: [
-          'Connect high-speed devices directly instead of using a hub',
-          'Use a powered hub if power delivery is limiting bandwidth'
+          'For your fastest devices, connecting directly to your laptop instead of through a hub may improve transfer speeds',
+          'This is not required — most devices work normally through a hub'
         ]
       })
     }
@@ -53,10 +53,10 @@ export function generateRecommendations(issues) {
       recs.push({
         id: makeId(),
         priorityTag: 'OPTIONAL',
-        title: 'Upgrade Slower Devices',
+        title: 'Get Faster File Transfers (Optional)',
         steps: [
-          'Use a USB 3.0+ device to achieve higher speeds',
-          'Move device to a lower-tier port to free up high-speed ports for demanding devices'
+          'If you need faster file transfer speeds, consider using a USB 3.0 or higher storage device',
+          'Your current setup is working normally — this is only needed if you want faster speeds'
         ]
       })
     }
@@ -67,10 +67,10 @@ export function generateRecommendations(issues) {
     recs.push({
       id: makeId(),
       priorityTag: 'INFO',
-      title: 'Optimal USB Topology',
+      title: 'Your USB Setup Is Optimal',
       steps: [
-        'No configuration bottlenecks detected.',
-        'All devices have sufficient bandwidth for their tier.'
+        'All devices are running at their expected speed.',
+        'No changes are needed. Everything is working as it should.'
       ]
     })
   }

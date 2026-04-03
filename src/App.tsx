@@ -20,7 +20,7 @@ export default function App() {
           <span className="app-logo"></span>
           <div>
             <h1 className="app-title">usbWidth</h1>
-            <p className="app-subtitle">USB system analysis · Device hierarchy · Performance optimization</p>
+            <p className="app-subtitle">See what's connected, how fast it runs, and what (if anything) is slowing it down</p>
           </div>
         </div>
         <div className="app-header-right">
@@ -41,7 +41,7 @@ export default function App() {
             aria-label="Refresh hardware scan"
           >
             <span className={`refresh-icon ${loadState === 'loading' ? 'spinning' : ''}`}>↻</span>
-            {loadState === 'loading' ? 'Scanning…' : 'Refresh Scan'}
+            {loadState === 'loading' ? 'Scanning…' : 'Scan Again'}
           </button>
         </div>
       </header>
@@ -51,33 +51,33 @@ export default function App() {
         {loadState === 'idle' && (
           <div className="app-state-screen">
             <span className="app-state-icon">🔌</span>
-            <h2>Ready to scan</h2>
-            <p>Click <strong>Refresh Scan</strong> to analyse your USB topology.</p>
+            <h2>Ready when you are</h2>
+            <p>Click <strong>Scan Again</strong> to detect your connected USB devices and check their performance.</p>
           </div>
         )}
 
         {loadState === 'loading' && (
           <div className="app-state-screen">
             <div className="app-spinner" />
-            <h2>Scanning hardware…</h2>
-            <p>Querying USB systems, hubs, and devices.</p>
+            <h2>Scanning your setup…</h2>
+            <p>Detecting USB controllers, hubs, and connected devices. This only takes a moment.</p>
           </div>
         )}
 
         {loadState === 'error' && (
           <div className="app-state-screen app-state-err">
-            <span className="app-state-icon">❌</span>
-            <h2>Scan failed</h2>
+            <span className="app-state-icon">⚠️</span>
+            <h2>Couldn't read your USB setup</h2>
             <p>{errorMsg}</p>
-            <button className="app-refresh-btn" onClick={fetchTopology}>Retry</button>
+            <button className="app-refresh-btn" onClick={fetchTopology}>Try Again</button>
           </div>
         )}
 
         {loadState === 'success' && data && (
           (() => {
             let systemHealth = 'optimal';
-            let statusTitle = 'System Operating Normally';
-            let statusSubtext = 'All connected devices are functionally optimized for the currently available bandwidth.';
+            let statusTitle = 'System Health: Excellent';
+            let statusSubtext = 'All connected devices are running well. No performance issues detected.';
             let statusIcon = '🟢';
 
             const hasSystem = data.warnings.some((w: any) => w.source === 'SYSTEM_LIMITATION');
@@ -86,15 +86,15 @@ export default function App() {
 
             if (hasSystem) {
               systemHealth = 'bottleneck';
-              statusTitle = 'System-Level Bottleneck Detected';
-              statusSubtext = 'System controller bandwidth is saturated. Significant performance impacts expected.';
+              statusTitle = 'Controller Load Is High';
+              statusSubtext = 'Your USB controller is handling significant traffic. Consider disconnecting unused devices to improve performance.';
               statusIcon = '🔴';
             } else if (hasHub || hasDevice) {
               systemHealth = 'limited';
-              statusTitle = 'Performance Limited by Connected Devices';
+              statusTitle = 'System Working Normally';
               statusSubtext = hasHub
-                ? 'Bandwidth is shared across multiple devices via a hub.'
-                : 'Some connected devices are operating below the port\'s maximum capability.';
+                ? 'Some devices share a connection through a hub. This is expected behavior and your laptop is performing normally.'
+                : 'Some devices are using standard USB 2.0 speed, which is normal for their device type. Your laptop is not a factor.';
               statusIcon = '🟡';
             }
 
@@ -127,26 +127,26 @@ export default function App() {
                         <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{data.classifiedDevices.filter(d => !d.isInternal).length || data.classifiedDevices.length}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
-                        <span style={{ color: 'var(--text-muted)' }}>Fully Optimized:</span>
+                        <span style={{ color: 'var(--text-muted)' }}>Working Normally:</span>
                         <span style={{ fontWeight: 600, color: '#4ade80' }}>
                           {data.classifiedDevices.filter(d => d.status === 'NORMAL' && !d.isInternal).length}
                         </span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
-                        <span style={{ color: 'var(--text-muted)' }}>Limited by Device:</span>
-                        <span style={{ fontWeight: 600, color: '#fbbf24' }}>
+                        <span style={{ color: 'var(--text-muted)' }} title="Standard USB 2.0 speed — expected for these device types">At Standard Speed:</span>
+                        <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
                           {data.warnings.filter(w => w.source === 'DEVICE_LIMITATION').length}
                         </span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
-                        <span style={{ color: 'var(--text-muted)' }}>Limited by Hub:</span>
-                        <span style={{ fontWeight: 600, color: '#fbbf24' }}>
+                        <span style={{ color: 'var(--text-muted)' }} title="Sharing a hub connection — normal for most devices">Sharing Connection:</span>
+                        <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
                           {data.warnings.filter(w => w.source === 'HUB_LIMITATION').length}
                         </span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
-                        <span style={{ color: 'var(--text-muted)' }}>System Bottlenecks:</span>
-                        <span style={{ fontWeight: 600, color: data.warnings.some(w => w.source === 'SYSTEM_LIMITATION') ? '#f87171' : 'var(--text-primary)' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Controller Issues:</span>
+                        <span style={{ fontWeight: 600, color: data.warnings.some(w => w.source === 'SYSTEM_LIMITATION') ? '#f87171' : 'var(--text-secondary)' }}>
                           {data.warnings.filter(w => w.source === 'SYSTEM_LIMITATION').length}
                         </span>
                       </div>
