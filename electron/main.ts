@@ -8,6 +8,7 @@ if (process.platform === 'linux') {
   app.disableHardwareAcceleration()
   app.commandLine.appendSwitch('no-sandbox')
   app.commandLine.appendSwitch('disable-sandbox')
+  app.commandLine.appendSwitch('disable-dev-shm-usage')
   // Extremely common fix for pure black screens on Fedora/Wayland:
   app.commandLine.appendSwitch('enable-features', 'WaylandWindowDecorations')
   app.commandLine.appendSwitch('ozone-platform-hint', 'auto')
