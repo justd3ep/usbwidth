@@ -4,31 +4,51 @@
 
 /* ─── Tokens ────────────────────────────────────────────────────────── */
 :root {
-  /* Colors */
-  --bg-base:        #0b0e14;
-  --bg-surface:     #0f1420;
-  --bg-elevated:    #141824;
+  /* ── Backgrounds ── */
+  --bg-base:        #0B1220;   /* deep navy, never pure black */
+  --bg-surface:     #0F172A;   /* slate-900 — panels sit here */
+  --bg-elevated:    #162032;   /* cards float above surface */
+  --bg-overlay:     #1E2D45;   /* dropdowns, tooltips */
 
-  --accent-blue:    #3b82f6;
-  --accent-violet:  #8b5cf6;
-  --accent-cyan:    #06b6d4;
-  --accent-glow:    rgba(59, 130, 246, 0.15);
+  /* ── Borders ── */
+  --border-subtle:  #1E293B;   /* solid card outlines (slate-800) */
+  --border-muted:   rgba(255, 255, 255, 0.06); /* very subtle internal dividers */
+  --glass-border:   rgba(255, 255, 255, 0.07); /* translucent borders */
 
-  --text-primary:   #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted:     #475569;
+  /* Legacy alias kept for components that still reference it */
+  --glass-bg:       rgba(22, 32, 50, 0.85);
 
-  --glass-bg:       rgba(15, 20, 32, 0.7);
-  --glass-border:   rgba(255, 255, 255, 0.08);
+  /* ── Accent palette ── */
+  --accent-blue:    #3B82F6;   /* primary */
+  --accent-blue-dim: rgba(59, 130, 246, 0.15);
+  --accent-violet:  #8B5CF6;
+  --accent-cyan:    #06B6D4;
+  --accent-green:   #22C55E;
+  --accent-amber:   #F59E0B;   /* single amber token — all warnings use this */
+  --accent-red:     #EF4444;
+  --accent-glow:    rgba(59, 130, 246, 0.18);
 
+  /* ── Text ── */
+  --text-primary:   #E2E8F0;   /* slate-200 — headings & values */
+  --text-secondary: #94A3B8;   /* slate-400 — body text, descriptions */
+  --text-muted:     #64748B;   /* slate-500 — labels, hints */
+  --text-faint:     #475569;   /* slate-600 — timestamps, footnotes */
+
+  /* ── Radius ── */
   --radius-sm:  6px;
   --radius-md:  10px;
   --radius-lg:  14px;
   --radius-xl:  20px;
 
-  --shadow-sm:  0 1px 4px rgba(0,0,0,0.4);
-  --shadow-md:  0 4px 20px rgba(0,0,0,0.5);
-  --shadow-lg:  0 8px 40px rgba(0,0,0,0.6);
+  /* ── Shadows ── */
+  --shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md:  0 4px 16px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg:  0 10px 40px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  /* ── Motion ── */
+  --transition-fast:   0.12s ease;
+  --transition-normal: 0.2s ease;
 }
 
 /* ─── Reset ──────────────────────────────────────────────────────────── */
@@ -44,11 +64,12 @@ body {
   background: var(--bg-base);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
 }
 
-/* Scrollbar */
+/* ─── Scrollbar ─────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.10); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.18); }

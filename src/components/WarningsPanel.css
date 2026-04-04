@@ -1,11 +1,11 @@
 /* WarningsPanel.css */
 
 .wp-container {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   padding: 1.25rem 1.5rem;
-  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -17,10 +17,12 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .wp-title {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
@@ -32,10 +34,11 @@
 .wp-counts { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 
 .wc-pill {
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 600;
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
+  letter-spacing: 0.02em;
 }
 
 .wp-list { display: flex; flex-direction: column; gap: 0.5rem; }
@@ -52,139 +55,177 @@
 }
 .wp-empty-icon { font-size: 2rem; }
 
-/* ─── Card ────────────────────────────────────────────────────── */
-
-.wc-card {
-  border-radius: 8px;
-  border: 1px solid;
-  overflow: hidden;
-  transition: box-shadow 0.15s;
-}
-.wc-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
-
+/* ─── Severity colors ─────────────────────────────────────── */
 .sev-critical {
   border-color: rgba(239, 68, 68, 0.35);
   background: rgba(239, 68, 68, 0.07);
 }
-.sev-critical .wc-code { color: #f87171; }
+.sev-critical .wc-code { color: #F87171; }
 
 .sev-warning {
-  border-color: rgba(245, 158, 11, 0.35);
-  background: rgba(245, 158, 11, 0.07);
+  border-color: rgba(245, 158, 11, 0.30);
+  background: rgba(245, 158, 11, 0.06);
 }
-.sev-warning .wc-code { color: #fbbf24; }
+.sev-warning .wc-code { color: var(--accent-amber); }
 
 .sev-info {
-  border-color: rgba(59, 130, 246, 0.35);
-  background: rgba(59, 130, 246, 0.07);
+  border-color: rgba(59, 130, 246, 0.30);
+  background: rgba(59, 130, 246, 0.06);
 }
-.sev-info .wc-code { color: #60a5fa; }
+.sev-info .wc-code { color: #60A5FA; }
 
 .sev-ok {
-  border-color: rgba(34, 197, 94, 0.35);
-  background: rgba(34, 197, 94, 0.12);
-  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.30);
+  background: rgba(34, 197, 94, 0.10);
+  color: #4ADE80;
 }
+
+/* ─── Card ────────────────────────────────────────────────── */
+.wc-card {
+  border-radius: var(--radius-md);
+  border: 1px solid;
+  overflow: hidden;
+  transition: box-shadow var(--transition-fast), background var(--transition-fast);
+}
+
+.wc-card:hover { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35); }
 
 .wc-header {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.6rem 0.75rem;
+  padding: 0.65rem 0.85rem;
   cursor: pointer;
   user-select: none;
 }
 
-.wc-sev-icon { font-size: 0.9rem; flex-shrink: 0; }
+.wc-sev-icon {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 700;
+}
+
+.sev-critical .wc-sev-icon {
+  background: rgba(239, 68, 68, 0.2);
+  color: #F87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.sev-warning .wc-sev-icon {
+  background: rgba(245, 158, 11, 0.18);
+  color: var(--accent-amber);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
 
 .wc-main {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
-}
-
-.wc-title {
-  font-size: 0.8rem;
-  color: var(--text-muted);
+  min-width: 0;
 }
 
 .wc-deviceName {
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 600;
   color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wc-title {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .wc-chevron {
   color: var(--text-muted);
-  font-size: 0.8rem;
-  padding: 0.5rem;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.4rem;
+  flex-shrink: 0;
+  transition: color var(--transition-fast);
 }
 
-/* ─── Detail/Body ────────────────────────────────────────────── */
+.wc-header:hover .wc-chevron { color: var(--text-secondary); }
 
+/* ─── Detail/Body ────────────────────────────────────────── */
 .wc-body {
-  padding: 1rem 1.25rem 1.25rem;
-  border-top: 1px solid var(--glass-border);
-  background: rgba(0, 0, 0, 0.1);
+  padding: 1rem 1rem 1.1rem;
+  border-top: 1px solid var(--border-muted);
+  background: rgba(11, 18, 32, 0.45);
 }
 
 .wc-detail-text {
   margin: 0 0 1rem 0;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .wc-metrics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 0.75rem;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  padding: 0.8rem;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border-subtle);
+  padding: 0.85rem;
   border-radius: var(--radius-md);
-  margin-bottom: 1rem;
+  margin-bottom: 0.85rem;
 }
 
 .wc-metric {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.25rem;
 }
 
 .wc-metric-label {
-  font-size: 0.65rem;
+  font-size: 0.63rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   color: var(--text-muted);
+  font-weight: 500;
 }
 
 .wc-metric-value {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--text-primary);
 }
 
+/* ─── Verdict box ────────────────────────────────────────── */
+/* Default (info / non-critical): use blue tone — fixes yellow clash */
 .wc-verdict {
   display: inline-block;
-  background: rgba(245, 158, 11, 0.15); /* Yellow */
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  padding: 0.4rem 0.8rem;
+  background: rgba(59, 130, 246, 0.10);
+  color: #60A5FA;
+  border: 1px solid rgba(59, 130, 246, 0.22);
+  padding: 0.45rem 0.85rem;
   border-radius: var(--radius-md);
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  margin-bottom: 1rem;
+  font-weight: 500;
+  line-height: 1.55;
+  margin-bottom: 0.75rem;
 }
 
+/* Critical override: use red */
 .sev-critical .wc-verdict {
-  background: rgba(239, 68, 68, 0.15); /* Red/System */
-  color: #f87171;
-  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.12);
+  color: #F87171;
+  border-color: rgba(239, 68, 68, 0.28);
 }
 
+/* ─── Affected IDs ───────────────────────────────────────── */
 .wc-affected {
   display: flex;
   align-items: center;
@@ -199,10 +240,11 @@
 }
 
 .wc-aff-id {
-  font-size: 0.65rem;
-  font-family: monospace;
-  background: rgba(255,255,255,0.07);
-  padding: 0.15rem 0.4rem;
+  font-size: 0.63rem;
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-muted);
+  padding: 0.15rem 0.45rem;
   border-radius: 4px;
   color: var(--text-muted);
   max-width: 180px;

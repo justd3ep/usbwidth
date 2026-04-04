@@ -5,59 +5,62 @@ import './TopologyTree.css'
 
 const TYPE_ICON: Record<string, string> = {
   USBController: '🔌',
-  USBHub:        '⬡',
-  DiskDrive:     '💾',
-  ImageDevice:   '📷',
-  Keyboard:      '⌨️',
-  Mouse:         '🖱️',
+  USBHub: '⬡',
+  DiskDrive: '💾',
+  ImageDevice: '📷',
+  Keyboard: '⌨️',
+  Mouse: '🖱️',
   AudioEndpoint: '🎧',
-  HIDClass:      '🕹️',
-  Bluetooth:     '⊙',
+  HIDClass: '🕹️',
+  Bluetooth: '⊙',
 }
 
 // ─── Display Data ────────────────────────────────────────────────────────────
 
 const TIER_COLOR: Record<string, string> = {
-  HIGH:   'tier-high',
+  HIGH: 'tier-high',
   MEDIUM: 'tier-medium',
-  LOW:    'tier-low',
+  LOW: 'tier-low',
 }
 
 const TIER_LABEL: Record<string, string> = {
-  HIGH:   'High-Bandwidth',
-  MEDIUM: 'Standard Use',
-  LOW:    'Low-Bandwidth',
+  HIGH: 'High Bandwidth',
+  MEDIUM: 'Standard Device',
+  LOW: 'Low Bandwidth',
 }
 
 const TIER_TOOLTIP: Record<string, string> = {
-  HIGH:   'This device works best with a direct, fast connection — such as an external SSD or capture card.',
-  MEDIUM: 'This device uses a typical amount of bandwidth and works normally on any modern port.',
-  LOW:    'This device uses minimal bandwidth — such as a keyboard or mouse. Works perfectly on any USB port.',
+  HIGH: 'High-bandwidth device — benefits from a direct USB 3.x connection for best transfer speeds (e.g. external SSD, capture card).',
+  MEDIUM: 'Standard-bandwidth device — works well on any modern port. No special connection is required.',
+  LOW: 'Low-bandwidth device — keyboards, mice, headphones, Bluetooth. Any USB port is more than sufficient for this device type.',
 }
 
 const STATUS_BADGE: Record<string, { icon: string; className: string }> = {
-  NORMAL:  { icon: 'Working Normally', className: 'status-normal' },
-  LIMITED: { icon: 'Standard Speed',   className: 'status-limited' },
-  WARNING: { icon: 'Needs Attention',  className: 'status-bottleneck' },
+  ADEQUATE: { icon: 'Working as Expected', className: 'status-adequate' },
+  NORMAL: { icon: 'Working as Expected', className: 'status-adequate' }, // legacy compat
+  OPTIMAL: { icon: 'Running at Full Speed', className: 'status-optimal' }, // future use
+  LIMITED: { icon: 'Performance Limited', className: 'status-limited' },
+  WARNING: { icon: 'Needs Attention', className: 'status-bottleneck' },
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatSpeed(mbps: number) {
-  if (mbps === 1.5)   return 'USB 1.0'
-  if (mbps === 12)    return 'USB 1.1'
-  if (mbps === 480)   return 'USB 2.0 — Standard'
-  if (mbps === 5000)  return 'USB 3.0 — Fast'
-  if (mbps === 10000) return 'USB 3.1 — Very Fast'
-  if (mbps === 20000) return 'USB 3.2 — Ultra Fast'
+  if (mbps === 1.5) return 'USB 1.0'
+  if (mbps === 12) return 'USB 1.1'
+  if (mbps === 480) return 'USB 2.0'
+  if (mbps === 5000) return 'USB 3.0 (5 Gbps)'
+  if (mbps === 10000) return 'USB 3.1 (10 Gbps)'
+  if (mbps === 20000) return 'USB 3.2 (20 Gbps)'
   if (mbps === 40000) return 'USB4 / Thunderbolt'
-  if (mbps >= 1000)   return `${(mbps / 1000).toFixed(0)} Gbps`
+  if (mbps >= 1000) return `${(mbps / 1000).toFixed(0)} Gbps`
   return `${mbps} Mbps`
 }
 
 function getSpeedTooltip(mbps: number) {
-  if (mbps <= 480)   return 'USB 2.0 — Standard speed. Works great for keyboards, mice, webcams, and most everyday devices. This is expected and not a problem.'
-  if (mbps <= 5000)  return 'USB 3.0 — Fast connection. Ideal for external drives and cameras.'
+  if (mbps <= 12) return 'USB 1.1 Full Speed — Optimised for input devices and audio. More than adequate for keyboards, mice, and headphones.'
+  if (mbps <= 480) return 'USB 2.0 Hi-Speed — Standard speed. Works great for audio, webcams, and most everyday devices. Expected and normal.'
+  if (mbps <= 5000) return 'USB 3.0 — Fast connection. Ideal for external storage drives and cameras.'
   if (mbps <= 20000) return 'USB 3.1/3.2 — Very fast. Handles demanding devices like fast SSDs and capture cards.'
   return 'USB4 / Thunderbolt — Ultra-fast connection for the most demanding devices.'
 }
@@ -96,12 +99,18 @@ function deviceTag(node: any): { label: string; cls: string } {
  * Build the inline Notes text for a device row.
  */
 function getNotesText(node: any): { text: string; cls: string } {
-  if (node.status === 'WARNING')               return { text: 'Needs attention — see Connection Notes', cls: 'summary-red' }
-  if (node.status === 'LIMITED' && node.viaHub) return { text: 'Sharing connection via hub — expected', cls: 'summary-muted' }
-  if (node.status === 'LIMITED')               return { text: 'Running at standard USB 2.0 speed — normal', cls: 'summary-muted' }
-  if (node.viaHub)                             return { text: 'Via hub — working normally', cls: 'summary-muted' }
-  if (node.isInternal)                         return { text: 'Built-in component', cls: 'summary-muted' }
-  return { text: 'Working normally', cls: 'summary-ok' }
+  if (node.status === 'WARNING') return { text: 'Needs attention — see below', cls: 'summary-red' }
+  if (node.status === 'LIMITED' && node.viaHub)
+    return { text: 'Via hub', cls: 'summary-yellow' }
+  if (node.status === 'LIMITED')
+    return { text: 'Below capable speed', cls: 'summary-yellow' }
+  if (node.status === 'OPTIMAL')
+    return { text: 'Full speed', cls: 'summary-ok' }
+  if (node.viaHub)
+    return { text: 'Via hub', cls: 'summary-muted' }
+  if (node.isInternal)
+    return { text: 'Built-in', cls: 'summary-muted' }
+  return { text: 'As expected', cls: 'summary-ok' }
 }
 
 // ─── Device Row ───────────────────────────────────────────────────────────────
@@ -120,8 +129,8 @@ function DeviceRow({
   }
 
   const isWarned = warningIds.has(node.instanceId)
-  const icon  = TYPE_ICON[node.type] || '📦'
-  const tag   = deviceTag(node)
+  const icon = TYPE_ICON[node.type] || '📦'
+  const tag = deviceTag(node)
   const notes = getNotesText(node)
 
   return (
@@ -179,7 +188,7 @@ function HubGroup({ node, warningIds, depth }: { node: any; warningIds: Set<stri
   const internalChildren: any[] = (node.children || []).filter((c: any) => c.isInternal)
 
   const isStandard = node.speedMbps && node.speedMbps <= 480
-  const isFast     = node.speedMbps && node.speedMbps >= 5000
+  const isFast = node.speedMbps && node.speedMbps >= 5000
 
   const hubNote = isStandard
     ? 'Devices below share a standard-speed (USB 2.0) connection'
@@ -289,7 +298,7 @@ export default function TopologyTree({ tree, warnings }: Props) {
 
   const externalControllers = tree.filter(n => n.type === 'USBController' && hasExternalDescendants(n))
   const internalControllers = tree.filter(n => n.type === 'USBController' && hasOnlyInternalDescendants(n))
-  const topLevelDevices     = tree.filter(n => n.type !== 'USBController')
+  const topLevelDevices = tree.filter(n => n.type !== 'USBController')
 
   // Collect all external devices across all external controllers (non-internal)
   const allExternalDevices = externalControllers.flatMap(ctrl =>

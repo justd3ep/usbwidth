@@ -33,7 +33,7 @@ function createWindow() {
     height: 800,
     minWidth: 900,
     minHeight: 600,
-    title: 'Hardware Topology & Bottleneck Advisor',
+    title: 'usbWidth',
     icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
     ...(process.platform === 'darwin' ? { titleBarStyle: 'hiddenInset' } : {}),
     webPreferences: {

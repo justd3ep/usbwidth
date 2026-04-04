@@ -51,9 +51,8 @@ export default function RecommendationsPanel({ recommendations }: Props) {
       <div className="rp-list">
         {recommendations.length === 0 ? (
           <div className="rp-empty" style={{ padding: '2rem 1rem', textAlign: 'center' }}>
-            <span className="rp-empty-icon" style={{ fontSize: '2.5rem', display: 'block', marginBottom: '0.5rem' }}>🎉</span>
-            <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-color)' }}>Nothing to improve</h3>
-            <p style={{ margin: 0, opacity: 0.8, lineHeight: 1.5 }}>Your USB setup is working great. No configuration changes are needed.</p>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>Nothing to improve</h3>
+            <p style={{ margin: 0, opacity: 0.8, lineHeight: 1.5, color: 'var(--text-secondary)' }}>Your USB setup is working great. No configuration changes are needed.</p>
           </div>
         ) : (
           recommendations.map(r => <RecCard key={r.id} rec={r} />)

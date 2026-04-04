@@ -1,11 +1,11 @@
 /* RecommendationsPanel.css */
 
 .rp-container {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   padding: 1.25rem 1.5rem;
-  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -15,10 +15,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .rp-title {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
@@ -28,8 +30,12 @@
 }
 
 .rp-count {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-muted);
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
 }
 
 .rp-list { display: flex; flex-direction: column; gap: 0.5rem; }
@@ -46,78 +52,90 @@
 }
 .rp-empty-icon { font-size: 2rem; }
 
-/* ─── Priority badge ─────────────────────────────────────────── */
-
+/* ─── Priority badge ─────────────────────────────────────── */
 .rc-priority-badge {
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 700;
   letter-spacing: 0.07em;
-  padding: 0.15rem 0.45rem;
+  padding: 0.18rem 0.48rem;
   border-radius: 999px;
   text-transform: uppercase;
   flex-shrink: 0;
 }
 
-.pri-1 .rc-priority-badge, .pri-1.rc-priority-badge {
-  background: rgba(239, 68, 68, 0.18);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-}
-.pri-2 .rc-priority-badge, .pri-2.rc-priority-badge {
-  background: rgba(245, 158, 11, 0.18);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
-}
-.pri-3 .rc-priority-badge, .pri-3.rc-priority-badge {
-  background: rgba(99, 102, 241, 0.18);
-  color: #818cf8;
-  border: 1px solid rgba(99, 102, 241, 0.3);
+/* IMPORTANT → red */
+.pri-1 .rc-priority-badge,
+.pri-1.rc-priority-badge {
+  background: rgba(239, 68, 68, 0.15);
+  color: #F87171;
+  border: 1px solid rgba(239, 68, 68, 0.28);
 }
 
-/* ─── Card ──────────────────────────────────────────────────── */
+/* OPTIONAL → amber (consistent with warning accent) */
+.pri-2 .rc-priority-badge,
+.pri-2.rc-priority-badge {
+  background: rgba(245, 158, 11, 0.14);
+  color: var(--accent-amber);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+}
 
+/* INFO → violet */
+.pri-3 .rc-priority-badge,
+.pri-3.rc-priority-badge {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818CF8;
+  border: 1px solid rgba(99, 102, 241, 0.28);
+}
+
+/* ─── Card ────────────────────────────────────────────────── */
 .rc-card {
-  border-radius: 8px;
-  border: 1px solid var(--glass-border);
-  background: rgba(255,255,255,0.03);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: rgba(15, 23, 42, 0.5);
   overflow: hidden;
-  transition: box-shadow 0.15s;
+  transition: box-shadow var(--transition-fast);
 }
-.rc-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.25); }
 
-.pri-1.rc-card { border-color: rgba(239, 68, 68, 0.25); }
-.pri-2.rc-card { border-color: rgba(245, 158, 11, 0.22); }
-.pri-3.rc-card { border-color: rgba(99, 102, 241, 0.22); }
+.rc-card:hover { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); }
+
+.pri-1.rc-card { border-color: rgba(239, 68, 68, 0.22); }
+.pri-2.rc-card { border-color: rgba(245, 158, 11, 0.20); }
+.pri-3.rc-card { border-color: rgba(99, 102, 241, 0.20); }
 
 .rc-header {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.6rem 0.75rem;
+  gap: 0.65rem;
+  padding: 0.7rem 0.85rem;
   cursor: pointer;
   user-select: none;
+  transition: background var(--transition-fast);
 }
+
+.rc-header:hover { background: rgba(255, 255, 255, 0.03); }
 
 .rc-title {
   flex: 1;
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--text-primary);
-  line-height: 1.3;
+  line-height: 1.4;
 }
 
 .rc-chevron {
   font-size: 0.65rem;
   color: var(--text-muted);
   flex-shrink: 0;
+  transition: color var(--transition-fast);
 }
+.rc-header:hover .rc-chevron { color: var(--text-secondary); }
 
-/* ─── Steps ─────────────────────────────────────────────────── */
-
+/* ─── Steps ──────────────────────────────────────────────── */
 .rc-steps {
   margin: 0;
-  padding: 0 0.75rem 0.75rem 2rem;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 0.75rem 1rem 0.85rem 2rem;
+  border-top: 1px solid var(--border-muted);
+  background: rgba(11, 18, 32, 0.3);
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -127,6 +145,6 @@
 .rc-step {
   font-size: 0.8rem;
   color: var(--text-secondary);
-  line-height: 1.55;
-  padding-top: 0.4rem;
+  line-height: 1.6;
+  padding-top: 0.3rem;
 }

@@ -23,6 +23,7 @@ interface Warning {
 
 interface Props {
   warnings: Warning[]
+  insight?: string | null
 }
 
 function WarningCard({ warning }: { warning: Warning }) {
@@ -72,7 +73,7 @@ function WarningCard({ warning }: { warning: Warning }) {
   )
 }
 
-export default function WarningsPanel({ warnings }: Props) {
+export default function WarningsPanel({ warnings, insight }: Props) {
   const critCount = warnings.filter(w => w.severity === 'critical').length
   const warnCount = warnings.filter(w => w.severity === 'warning').length
 
@@ -90,9 +91,13 @@ export default function WarningsPanel({ warnings }: Props) {
       <div className="wp-list">
         {warnings.length === 0 ? (
           <div className="wp-empty" style={{ padding: '2rem 1rem', textAlign: 'center' }}>
-            <span className="wp-empty-icon" style={{ fontSize: '2.5rem', display: 'block', marginBottom: '0.5rem' }}>✅</span>
-            <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-color)' }}>Everything is working as expected</h3>
-            <p style={{ margin: 0, opacity: 0.8, lineHeight: 1.5 }}>All devices are running at their best available speed. Your setup is optimal.</p>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>Everything is working as expected</h3>
+            <p style={{ margin: 0, lineHeight: 1.6, color: 'var(--text-secondary)' }}>All devices are running at their best available speed for their type.</p>
+            {insight && (
+              <p style={{ margin: '0.85rem auto 0', maxWidth: '34rem', padding: '0.6rem 1rem', borderRadius: '6px', background: 'rgba(59,130,246,0.07)', border: '1px solid rgba(59,130,246,0.15)', fontSize: '0.8rem', lineHeight: 1.6, color: 'var(--text-secondary)' }}>
+                {insight}
+              </p>
+            )}
           </div>
         ) : (
           warnings.map(w => <WarningCard key={w.id} warning={w} />)

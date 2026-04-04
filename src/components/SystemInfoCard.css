@@ -1,10 +1,11 @@
 /* SystemInfoCard.css */
+
 .sic-card {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   padding: 1.25rem 1.5rem;
-  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .sic-header {
@@ -12,12 +13,14 @@
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-.sic-icon { font-size: 1.2rem; }
+.sic-icon { font-size: 1.15rem; }
 
 .sic-title {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
@@ -25,34 +28,75 @@
 }
 
 .sic-mock-badge {
-  font-size: 0.65rem;
+  font-size: 0.63rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   padding: 0.2rem 0.5rem;
   border-radius: 999px;
-  background: rgba(245, 158, 11, 0.2);
-  color: #f59e0b;
-  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--accent-amber);
+  border: 1px solid rgba(245, 158, 11, 0.28);
   cursor: help;
 }
 
 .sic-grid {
   display: grid;
   grid-template-columns: max-content 1fr max-content 1fr;
-  gap: 0.4rem 1.5rem;
+  gap: 0.45rem 1.5rem;
 }
 
 .sic-label {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 500;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   padding-top: 0.1rem;
 }
 
 .sic-value {
-  font-size: 0.85rem;
+  font-size: 0.83rem;
   color: var(--text-secondary);
   word-break: break-word;
+  font-weight: 500;
+}
+
+/* ─── Capabilities section ──────────────────────────────────── */
+.sic-capabilities {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 0.82rem;
+}
+
+.sic-capabilities h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.sic-capabilities ul {
+  margin: 0 0 0 0.1rem;
+  padding-left: 0.85rem;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border-left: 2px solid rgba(59, 130, 246, 0.3);
+  list-style: none;
+}
+
+.sic-capabilities li::before {
+  content: '·';
+  color: var(--accent-blue);
+  margin-right: 0.4rem;
+  font-weight: 700;
+}
+
+.sic-capabilities p {
+  margin: 0.6rem 0 0 0;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
 }

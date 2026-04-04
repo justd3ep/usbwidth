@@ -76,13 +76,35 @@ export default function App() {
         {loadState === 'success' && data && (
           (() => {
             let systemHealth = 'optimal';
-            let statusTitle = 'System Health: Excellent';
-            let statusSubtext = 'All connected devices are running well. No performance issues detected.';
+            let statusTitle = 'All Devices Operating Normally';
+            let statusSubtext = 'All connected devices are performing as expected for their type. No issues detected.';
             let statusIcon = '🟢';
 
             const hasSystem = data.warnings.some((w: any) => w.source === 'SYSTEM_LIMITATION');
             const hasHub = data.warnings.some((w: any) => w.source === 'HUB_LIMITATION');
             const hasDevice = data.warnings.some((w: any) => w.source === 'DEVICE_LIMITATION');
+
+            // Count healthy external devices (OPTIMAL, ADEQUATE, or legacy NORMAL)
+            const healthyCount = data.classifiedDevices.filter(
+              (d: any) => !d.isInternal &&
+                (d.status === 'OPTIMAL' || d.status === 'ADEQUATE' || d.status === 'NORMAL')
+            ).length
+            const limitedCount = data.warnings.filter((w: any) => w.source === 'DEVICE_LIMITATION').length
+            const hubCount = data.warnings.filter((w: any) => w.source === 'HUB_LIMITATION').length
+            const systemCount = data.warnings.filter((w: any) => w.source === 'SYSTEM_LIMITATION').length
+            const totalExternal = data.classifiedDevices.filter((d: any) => !d.isInternal).length || data.classifiedDevices.length
+
+            // Safe, factual insight for the Connection Notes empty state
+            const externalDevices = data.classifiedDevices.filter((d: any) => !d.isInternal)
+            const allLowTier = externalDevices.length > 0 && externalDevices.every((d: any) => d.tier === 'LOW')
+            const hasHighTier = externalDevices.some((d: any) => d.tier === 'HIGH')
+            const insight: string | null = data.warnings.length === 0
+              ? allLowTier
+                ? 'Your connected devices are all low-bandwidth by design. They work correctly on any USB port — no high-speed connection is required.'
+                : hasHighTier
+                  ? 'Your high-bandwidth devices are connected correctly and running at their available speed.'
+                  : 'All devices are operating at expected performance for their type.'
+              : null
 
             if (hasSystem) {
               systemHealth = 'bottleneck';
@@ -91,23 +113,23 @@ export default function App() {
               statusIcon = '🔴';
             } else if (hasHub || hasDevice) {
               systemHealth = 'limited';
-              statusTitle = 'System Working Normally';
+              statusTitle = 'One or More Devices Are Speed-Limited';
               statusSubtext = hasHub
-                ? 'Some devices share a connection through a hub. This is expected behavior and your laptop is performing normally.'
-                : 'Some devices are using standard USB 2.0 speed, which is normal for their device type. Your laptop is not a factor.';
+                ? 'A high-bandwidth device is sharing its connection via a hub. Connecting it directly may improve transfer speeds.'
+                : 'A storage or capture device is running at USB 2.0 speed and would benefit from a USB 3.x port.';
               statusIcon = '🟡';
             }
 
             return (
               <div className="app-dashboard">
                 {/* Top Banner: System Status Summary */}
-                <div className={`dash-status-banner status-${systemHealth}`} style={{ padding: '1rem 1.5rem', borderRadius: '8px', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div className={`dash-status-banner status-${systemHealth}`}>
                   <span style={{ fontSize: '2rem' }}>{statusIcon}</span>
                   <div>
-                    <h2 style={{ margin: '0 0 0.25rem 0', fontSize: '1.25rem', color: 'var(--text-primary)' }}>
+                    <h2 style={{ margin: '0 0 0.2rem 0', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                       {statusTitle}
                     </h2>
-                    <p style={{ margin: 0, opacity: 0.8, fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
+                    <p style={{ margin: 0, fontSize: '0.83rem', lineHeight: 1.6, color: 'var(--text-secondary)' }}>
                       {statusSubtext}
                     </p>
                   </div>
@@ -117,37 +139,38 @@ export default function App() {
                 <div className="dash-top">
                   <SystemInfoCard info={data.systemInfo} />
 
-                  <div className="dash-overview-card" style={{ flex: 1, minWidth: '280px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', padding: '1.25rem', display: 'flex', flexDirection: 'column' }}>
-                    <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div className="dash-overview-card">
+                    <h3 className="dash-overview-title">
                       <span>📊</span> Performance Overview
                     </h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.85rem', flex: 1 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
-                        <span style={{ color: 'var(--text-muted)' }}>Total Devices:</span>
-                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{data.classifiedDevices.filter(d => !d.isInternal).length || data.classifiedDevices.length}</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                      <div className="dash-overview-row">
+                        <span className="dash-overview-label">Total Devices</span>
+                        <span className="dash-overview-value">{totalExternal}</span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
-                        <span style={{ color: 'var(--text-muted)' }}>Working Normally:</span>
-                        <span style={{ fontWeight: 600, color: '#4ade80' }}>
-                          {data.classifiedDevices.filter(d => d.status === 'NORMAL' && !d.isInternal).length}
+                      <div className="dash-overview-row">
+                        <span className="dash-overview-label">Working Normally</span>
+                        <span className="dash-overview-value val-green">{healthyCount}</span>
+                      </div>
+                      <div className="dash-overview-row">
+                        <span
+                          className="dash-overview-label"
+                          title="High-bandwidth devices running below their capable speed (e.g. storage on USB 2.0)"
+                        >Speed Limited</span>
+                        <span className={`dash-overview-value ${limitedCount > 0 ? 'val-muted' : 'val-green'}`}>
+                          {limitedCount}
                         </span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
-                        <span style={{ color: 'var(--text-muted)' }} title="Standard USB 2.0 speed — expected for these device types">At Standard Speed:</span>
-                        <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
-                          {data.warnings.filter(w => w.source === 'DEVICE_LIMITATION').length}
+                      <div className="dash-overview-row">
+                        <span className="dash-overview-label" title="High-bandwidth devices sharing a hub connection">Sharing via Hub</span>
+                        <span className={`dash-overview-value ${hubCount > 0 ? 'val-muted' : 'val-green'}`}>
+                          {hubCount}
                         </span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
-                        <span style={{ color: 'var(--text-muted)' }} title="Sharing a hub connection — normal for most devices">Sharing Connection:</span>
-                        <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
-                          {data.warnings.filter(w => w.source === 'HUB_LIMITATION').length}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
-                        <span style={{ color: 'var(--text-muted)' }}>Controller Issues:</span>
-                        <span style={{ fontWeight: 600, color: data.warnings.some(w => w.source === 'SYSTEM_LIMITATION') ? '#f87171' : 'var(--text-secondary)' }}>
-                          {data.warnings.filter(w => w.source === 'SYSTEM_LIMITATION').length}
+                      <div className="dash-overview-row">
+                        <span className="dash-overview-label">Controller Issues</span>
+                        <span className={`dash-overview-value ${systemCount > 0 ? 'val-red' : 'val-green'}`}>
+                          {systemCount}
                         </span>
                       </div>
                     </div>
@@ -160,7 +183,7 @@ export default function App() {
                     <TopologyTree tree={data.tree} warnings={data.warnings} />
                   </div>
                   <div className="dash-right">
-                    <WarningsPanel warnings={data.warnings} />
+                    <WarningsPanel warnings={data.warnings} insight={insight} />
                     <RecommendationsPanel recommendations={data.recommendations} />
                   </div>
                 </div>
@@ -172,9 +195,8 @@ export default function App() {
 
       {/* Footer */}
       <footer className="app-footer">
-        <span>Hardware Topology &amp; Bottleneck Advisor · V1.0</span>
+        <span>usbWidth</span>
         <span className="app-footer-note">
-          No fake bandwidth %  · Real topology-based heuristics · Linux/Sysfs
         </span>
       </footer>
     </div>
