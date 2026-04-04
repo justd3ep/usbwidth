@@ -3,16 +3,20 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
+// Must be set before app is ready — disables Chromium sandbox at env level
+// This is required on Fedora/Wayland where /tmp namespace restrictions block shared memory
+process.env['ELECTRON_DISABLE_SANDBOX'] = '1'
+
 // Linux: disable hardware GPU to avoid VSync/GL errors, keep software renderer
 if (process.platform === 'linux') {
   app.disableHardwareAcceleration()
   app.commandLine.appendSwitch('no-sandbox')
   app.commandLine.appendSwitch('disable-sandbox')
   app.commandLine.appendSwitch('disable-dev-shm-usage')
+  app.commandLine.appendSwitch('in-process-gpu')
   // Extremely common fix for pure black screens on Fedora/Wayland:
   app.commandLine.appendSwitch('enable-features', 'WaylandWindowDecorations')
   app.commandLine.appendSwitch('ozone-platform-hint', 'auto')
-  process.env['ELECTRON_DISABLE_SANDBOX'] = 'true'
 }
 
 process.env.APP_ROOT = path.join(__dirname, '..')
@@ -35,7 +39,7 @@ function createWindow() {
     minWidth: 900,
     minHeight: 600,
     title: 'usbWidth',
-    icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
+    icon: path.join(process.env.VITE_PUBLIC, 'icon.png'),
     ...(process.platform === 'darwin' ? { titleBarStyle: 'hiddenInset' } : {}),
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),

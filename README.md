@@ -26,33 +26,32 @@
 
 ---
 
-## 🚀 Getting Started
+---
 
-### Prerequisites
-- **OS**: Linux (tested on Fedora, Ubuntu, and Debian-based distros)
-- **Dependencies**: `node` (v18+), `npm`
+## 🚀 How to Run on Linux
 
-### Installation
+### Option 1: Using the AppImage (Recommended)
+1. Download the latest `usbwidth-Linux-x.x.x.AppImage` from the [Releases](https://github.com/justd3ep/usbwidth/releases) page.
+2. Open your terminal in the download folder and make it executable:
+   ```bash
+   chmod +x usbwidth-Linux-1.0.4.AppImage
+   ```
+3. **Important for Fedora/Sandboxed users**: If the app fails to open, run it with the `--no-sandbox` flag:
+   ```bash
+   ./usbwidth-Linux-1.0.4.AppImage --no-sandbox
+   ```
+
+### Option 2: Building from Source
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/usbwidth.git
+   git clone https://github.com/justd3ep/usbwidth.git
    cd usbwidth
    ```
-2. Install dependencies:
+2. Install dependencies & Run:
    ```bash
    npm install
-   ```
-3. Launch in development mode:
-   ```bash
    npm run dev
    ```
-
-### Building for Production
-To generate a portable **AppImage**:
-```bash
-npm run build
-```
-The artifact will be located in the `release/` directory.
 
 ---
 
