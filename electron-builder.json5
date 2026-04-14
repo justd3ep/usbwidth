@@ -19,5 +19,9 @@
     ],
     "artifactName": "${productName}-Linux-${version}.${ext}",
     "executableArgs": ["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu-sandbox"]
+  },
+  "win": {
+    "target": ["nsis"],
+    "artifactName": "${productName}-Windows-${version}.${ext}"
   }
 }

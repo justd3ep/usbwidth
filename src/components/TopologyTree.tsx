@@ -136,8 +136,11 @@ function DeviceRow({
   return (
     <div className={`tn-row tn-row-leaf ${isWarned ? 'tn-warned' : ''} ${node.isInternal ? 'tn-row-internal' : ''}`}>
       {/* Device */}
-      <div className="tn-col tn-col-device" style={{ paddingLeft: `${depth * 1.2 + 0.25}rem` }}>
-        <span className="tn-icon">{icon}</span>
+      <div className="tn-col tn-col-device" style={{ paddingLeft: `${depth * 1.5}rem` }}>
+        <div className="tt-align-toggle"></div>
+        <div className="tt-align-icon">
+          <span className="tn-icon">{icon}</span>
+        </div>
         <div className="tn-name-container">
           <div className="tn-name-line">
             <span className="tn-name" title={node.name || 'Unknown Device'}>
@@ -200,13 +203,13 @@ function HubGroup({ node, warningIds, depth }: { node: any; warningIds: Set<stri
 
   return (
     <div className={`tn-hub-group ${isWarned ? 'tn-hub-warned' : ''}`}>
-      <div
-        className="tn-hub-header"
-        onClick={() => setExpanded(e => !e)}
-        title="A USB hub shares one port across multiple devices. Devices connected through it all share the same bandwidth."
-      >
-        <span className="tn-hub-toggle">{expanded ? '▾' : '▸'}</span>
-        <span className="tn-hub-icon">⬡</span>
+      <div className="tn-hub-header" onClick={() => setExpanded(e => !e)}>
+        <div className="tt-align-toggle">
+          <span className="tn-hub-toggle">{expanded ? '▾' : '▸'}</span>
+        </div>
+        <div className="tt-align-icon">
+          <span className="tn-hub-icon">⬡</span>
+        </div>
         <div className="tn-hub-label-group">
           <span className="tn-hub-name">{node.name || 'USB Hub'}</span>
           <span className="tn-hub-tag">Hub</span>
@@ -267,11 +270,11 @@ function Section({
 
   return (
     <div className={`tn-section ${dimmed ? 'tn-section-dimmed' : ''}`}>
-      <div
-        className={`tn-section-header ${collapsible ? '' : 'tn-section-header-static'}`}
-        onClick={() => collapsible && setOpen(o => !o)}
-      >
-        {collapsible && <span className="tn-section-toggle">{open ? '▾' : '▸'}</span>}
+      <div className={`tn-section-header ${!collapsible ? 'tn-section-header-static' : ''}`} onClick={() => collapsible && setOpen(o => !o)}>
+        <div className="tt-align-toggle">
+          {collapsible && <span className="tn-section-toggle">{open ? '▾' : '▸'}</span>}
+        </div>
+        <div className="tt-align-icon"></div>
         <div className="tn-section-label-group">
           <span className="tn-section-label">{label}</span>
           <span className="tn-section-note">{note}</span>
@@ -327,16 +330,20 @@ export default function TopologyTree({ tree, warnings }: Props) {
         <span className="tt-hint">Click any section header to collapse</span>
       </div>
 
-      <div className="tt-table-header">
-        <div className="tt-col-label">Device</div>
-        <div className="tt-col-label">Connection Speed</div>
-        <div className="tt-col-label">Bandwidth Use</div>
-        <div className="tt-col-label">Health</div>
-        <div className="tt-col-label">Notes</div>
-      </div>
-
       <div className="tt-tree-scroll-wrapper">
         <div className="tt-tree">
+          <div className="tt-table-header">
+            <div className="tt-col-label" style={{ display: 'flex', alignItems: 'center' }}>
+              <div className="tt-align-toggle"></div>
+              <div className="tt-align-icon"></div>
+              <div>Device</div>
+            </div>
+            <div className="tt-col-label">Connection Speed</div>
+            <div className="tt-col-label">Bandwidth Use</div>
+            <div className="tt-col-label">Health</div>
+            <div className="tt-col-label">Notes</div>
+          </div>
+
           {tree.length === 0 ? (
             <p className="tt-empty">No devices detected. Click "Scan Again" to rescan.</p>
           ) : (
@@ -346,7 +353,7 @@ export default function TopologyTree({ tree, warnings }: Props) {
                 <Section
                   label="External Devices"
                   note="Devices you have plugged into your computer"
-                  count={allExternalDevices.filter(d => d.type !== 'USBHub').length}
+                  count={flattenDescendants(allExternalDevices).filter((d: any) => d.type !== 'USBHub' && !d.isInternal).length}
                 >
                   {allExternalDevices.map((node: any) => (
                     <DeviceRow key={node.instanceId} node={node} warningIds={warningIds} depth={0} />

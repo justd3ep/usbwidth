@@ -26,7 +26,7 @@ export default function App() {
         <div className="app-header-right">
           {data && (
             <div className="app-platform-notice">
-              🐧 Live Linux Data
+              {data.platform === 'win32' ? '🪟 Live Windows Data' : data.platform === 'linux' ? '🐧 Live Linux Data' : '💻 Live Data'}
             </div>
           )}
           {data?.error && (
@@ -92,7 +92,8 @@ export default function App() {
             const limitedCount = data.warnings.filter((w: any) => w.source === 'DEVICE_LIMITATION').length
             const hubCount = data.warnings.filter((w: any) => w.source === 'HUB_LIMITATION').length
             const systemCount = data.warnings.filter((w: any) => w.source === 'SYSTEM_LIMITATION').length
-            const totalExternal = data.classifiedDevices.filter((d: any) => !d.isInternal).length || data.classifiedDevices.length
+            const totalExternal = data.classifiedDevices.filter((d: any) => !d.isInternal).length
+            const totalInternal = data.classifiedDevices.filter((d: any) => d.isInternal).length
 
             // Safe, factual insight for the Connection Notes empty state
             const externalDevices = data.classifiedDevices.filter((d: any) => !d.isInternal)
@@ -145,8 +146,12 @@ export default function App() {
                     </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                       <div className="dash-overview-row">
-                        <span className="dash-overview-label">Total Devices</span>
+                        <span className="dash-overview-label">External Devices</span>
                         <span className="dash-overview-value">{totalExternal}</span>
+                      </div>
+                      <div className="dash-overview-row">
+                        <span className="dash-overview-label">Built-in Devices</span>
+                        <span className="dash-overview-value val-muted">{totalInternal}</span>
                       </div>
                       <div className="dash-overview-row">
                         <span className="dash-overview-label">Working Normally</span>

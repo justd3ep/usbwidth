@@ -136,6 +136,7 @@ const NAME_RULES = [
 // ─── USB class code → profile key ────────────────────────────────────────────
 
 const CLASS_PROFILE = {
+  // Linux sysfs types
   AudioEndpoint:  'audio',
   HIDClass:       'hid',
   Keyboard:       'keyboard',
@@ -148,6 +149,17 @@ const CLASS_PROFILE = {
   Miscellaneous:  'unknown',
   VendorSpecific: 'unknown',
   USBDevice:      'unknown',
+  // Windows PnP class names (from Win32_PnPEntity.PNPClass)
+  Camera:         'webcam',
+  Image:          'webcam',
+  Media:          'audio',
+  Biometric:      'hid',
+  Net:            'unknown',
+  WPD:            'storage',   // Windows Portable Devices (phones, cameras with storage)
+  SCSIAdapter:    'storage',
+  CDROM:          'storage',
+  PrintQueue:     'printer',
+  SmartCardReader:'smartcard',
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────

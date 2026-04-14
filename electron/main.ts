@@ -14,13 +14,11 @@ if (process.platform === 'linux') {
   app.commandLine.appendSwitch('disable-sandbox')
   app.commandLine.appendSwitch('disable-dev-shm-usage')
   app.commandLine.appendSwitch('in-process-gpu')
-  // Extremely common fix for pure black screens on Fedora/Wayland:
   app.commandLine.appendSwitch('enable-features', 'WaylandWindowDecorations')
   app.commandLine.appendSwitch('ozone-platform-hint', 'auto')
 }
 
 process.env.APP_ROOT = path.join(__dirname, '..')
-
 
 export const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 export const MAIN_DIST = path.join(process.env.APP_ROOT, 'dist-electron')
@@ -53,12 +51,35 @@ function createWindow() {
   } else {
     win.loadFile(path.join(RENDERER_DIST, 'index.html'))
   }
+
+  // ─── Native USB hotplug (Windows) ────────────────────────────────────────────
+  // libusb fires 'attach'/'detach' events directly from the USB kernel driver.
+  // No polling. No PowerShell. Response time < 100ms.
+  if (process.platform === 'win32') {
+    import('./hardwareDetector.js')
+      .then(async ({ registerHotplug }) => {
+        try {
+          await registerHotplug(async () => {
+            try {
+              const newData = await getTopologyData()
+              if (win && !win.isDestroyed()) {
+                win.webContents.send('hardware-updated', newData)
+              }
+            } catch (err) {
+              console.error('[Hotplug] Failed to push update:', err)
+            }
+          })
+        } catch (err) {
+          console.error('[Hotplug] Setup failed:', err)
+        }
+      })
+      .catch(err => console.error('[Hotplug] Import failed:', err))
+  }
 }
 
 // ─── IPC Handlers ─────────────────────────────────────────────────────────────
 
 async function getTopologyData() {
-  // Dynamic imports (ESM-compatible)
   const { detectHardware } = await import('./hardwareDetector.js')
   const { buildTopology, flattenDevices } = await import('./topologyBuilder.js')
   const { classifyAll } = await import('./classifier.js')
@@ -79,6 +100,7 @@ async function getTopologyData() {
     warnings,
     recommendations,
     error: error || null,
+    platform: process.platform,
   }
 }
 

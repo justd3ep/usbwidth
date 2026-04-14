@@ -11,6 +11,18 @@ export default defineConfig({
       main: {
         // Shortcut of `build.lib.entry`.
         entry: 'electron/main.ts',
+        vite: {
+          build: {
+            rollupOptions: {
+              // 'usb' is a native .node addon — must NOT be bundled.
+              // The electron/*.js modules use import.meta.url for createRequire —
+              // bundling them into main.js breaks that. Keep them as separate files.
+              external: [
+                'usb',
+              ],
+            },
+          },
+        },
       },
       preload: {
         // Shortcut of `build.rollupOptions.input`.

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 
 export interface TopologyData {
   systemInfo: Record<string, string>
@@ -7,6 +7,7 @@ export interface TopologyData {
   warnings: any[]
   recommendations: any[]
   error: string | null
+  platform: string
 }
 
 export type LoadState = 'idle' | 'loading' | 'success' | 'error'
@@ -31,6 +32,19 @@ export function useHardwareData() {
     } catch (err: any) {
       setErrorMsg(err.message || 'IPC call failed')
       setLoadState('error')
+    }
+  }, [])
+
+  // Subscribe to real-time Windows hardware changes
+  useEffect(() => {
+    if (window.api && window.api.onHardwareUpdate) {
+      window.api.onHardwareUpdate((result: any) => {
+        if (result && !result.error) {
+          console.log('[Real-Time] Hardware change detected => Data Refreshed')
+          setData(result)
+          setLoadState('success')
+        }
+      })
     }
   }, [])
 
