@@ -1,7 +1,7 @@
 {
   "name": "usbwidth",
   "private": true,
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "USB device topology and performance advisor for Linux and Windows",
   "type": "module",
   "scripts": {

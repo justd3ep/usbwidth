@@ -246,38 +246,51 @@ export async function getSystemInfo() {
   // Registry reads for BIOS/OS info — fast, no WMI
   try {
     const biosOut = execFileSync('reg.exe', [
-      'query', 'HKLM\\HARDWARE\\DESCRIPTION\\System\\BIOS',
-      '/v', 'SystemManufacturer'
+      'query', 'HKLM\\HARDWARE\\DESCRIPTION\\System\\BIOS'
     ], { encoding: 'utf8', windowsHide: true, shell: false, timeout: 2000 })
-    const m = biosOut.match(/SystemManufacturer\s+REG_SZ\s+(.+)/i)
-    if (m) manufacturer = m[1].trim()
-  } catch {}
+    
+    const extract = (key) => {
+      const m = biosOut.match(new RegExp(`${key}\\s+REG_SZ\\s+(.+)`, 'i'))
+      return m ? m[1].trim() : null
+    }
 
-  try {
-    const biosOut = execFileSync('reg.exe', [
-      'query', 'HKLM\\HARDWARE\\DESCRIPTION\\System\\BIOS',
-      '/v', 'SystemProductName'
-    ], { encoding: 'utf8', windowsHide: true, shell: false, timeout: 2000 })
-    const m = biosOut.match(/SystemProductName\s+REG_SZ\s+(.+)/i)
-    if (m) model = m[1].trim()
+    const sysMfg = extract('SystemManufacturer')
+    if (sysMfg) manufacturer = sysMfg
+
+    const biosVer = extract('BIOSVersion')
+    if (biosVer) biosVersion = biosVer
+
+    const sysProd = extract('SystemProductName')
+    const sysFamily = extract('SystemFamily')
+    const baseboard = extract('BaseBoardProduct')
+    const sku = extract('SystemSKU')
+
+    // Improve model detection for generic names
+    let bestModel = sysProd
+    const isGeneric = (n) => !n || n === 'System Product Name' || n === 'Default string' || n === 'To be filled by O.E.M.' || /^hp(\s+laptop)?$/i.test(n)
+    
+    if (isGeneric(bestModel) && !isGeneric(sysFamily)) bestModel = sysFamily
+    if (isGeneric(bestModel) && !isGeneric(baseboard)) bestModel = baseboard
+    if (isGeneric(bestModel) && !isGeneric(sku)) bestModel = sku
+
+    if (bestModel && !isGeneric(bestModel)) {
+      model = bestModel
+    } else if (sysProd) {
+      model = sysProd
+    }
   } catch {}
 
   try {
     const osOut = execFileSync('reg.exe', [
-      'query', 'HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion',
-      '/v', 'ProductName'
+      'query', 'HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion'
     ], { encoding: 'utf8', windowsHide: true, shell: false, timeout: 2000 })
     const m = osOut.match(/ProductName\s+REG_SZ\s+(.+)/i)
     if (m) osName = m[1].trim()
-  } catch {}
 
-  try {
-    const biosOut = execFileSync('reg.exe', [
-      'query', 'HKLM\\HARDWARE\\DESCRIPTION\\System\\BIOS',
-      '/v', 'BIOSVersion'
-    ], { encoding: 'utf8', windowsHide: true, shell: false, timeout: 2000 })
-    const m = biosOut.match(/BIOSVersion\s+REG_SZ\s+(.+)/i)
-    if (m) biosVersion = m[1].trim()
+    const b = osOut.match(/CurrentBuild\s+REG_SZ\s+(\d+)/i)
+    if (b && parseInt(b[1], 10) >= 22000) {
+      osName = osName.replace('Windows 10', 'Windows 11')
+    }
   } catch {}
 
   let usbCapabilities = []
@@ -421,7 +434,7 @@ export function getUsbDevices() {
     const nameL = (name || '').toLowerCase()
     
     let isInternal = INTERNAL_VIDS.has(idVendorHex.toLowerCase()) ||
-      /\b(integrated|built.?in|internal|ir\s+camera|touchpad|fingerprint)\b/i.test(nameL) ||
+      /\b(integrated|built.?in|internal|ir\s+camera|touchpad|fingerprint|truevision|wide\s?vision|hp\s+.*camera|chicony|realtek.*camera)\b/i.test(nameL) ||
       /^usb[\s\d.]*hd[\s\d.]*uvc\s+web.?cam/i.test(nameL) ||
       /^(hd\s+)?web.?cam\s*(\d|$)/i.test(nameL) ||
       /^usb\s+camera\s*(\d|$)/i.test(nameL)
