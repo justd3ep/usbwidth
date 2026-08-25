@@ -1,49 +1,56 @@
 import React from 'react'
+import type { SystemInfo } from '../types/usb'
 import './SystemInfoCard.css'
 
 interface Props {
-  info: Record<string, any>
+  info: SystemInfo
 }
 
-const LABELS: Record<string, string> = {
+const LABELS: Record<keyof SystemInfo, string> = {
   manufacturer: 'Manufacturer',
   model: 'Model',
   cpu: 'CPU',
   os: 'OS',
   totalRam: 'RAM',
   biosVersion: 'BIOS',
+  usbCapabilities: 'USB Capabilities',
 }
 
+type LabelKey = Exclude<keyof SystemInfo, 'usbCapabilities'>
+
 export default function SystemInfoCard({ info }: Props) {
+  const entries = (Object.entries(LABELS) as [LabelKey, string][])
+    .filter(([k]) => info[k])
+  const caps: string[] = info.usbCapabilities || []
+
   return (
     <div className="sic-card">
       <div className="sic-header">
-        <span className="sic-icon">💻</span>
-        <h2 className="sic-title">System Info</h2>
+        <h2 className="sic-title">System</h2>
       </div>
-      <div className="sic-grid">
-        {Object.entries(LABELS).map(([key, label]) =>
-          info[key] ? (
-            <React.Fragment key={key}>
+      <div className="sic-list">
+        {entries.map(([key, label]) => {
+          const value = info[key]
+          const str = typeof value === 'string' ? value : String(value ?? '')
+          return (
+            <div className="sic-row" key={key}>
               <span className="sic-label">{label}</span>
-              <span className="sic-value">{info[key]}</span>
-            </React.Fragment>
-          ) : null
-        )}
+              <span className="sic-value" title={str}>{str}</span>
+            </div>
+          )
+        })}
       </div>
-      <div className="sic-capabilities">
-        <h3>Detected Hardware Capabilities</h3>
-        <ul>
-          {info.usbCapabilities ? (
-            info.usbCapabilities.map((cap: string, i: number) => (
+
+      {caps.length > 0 && (
+        <div className="sic-caps">
+          <span className="sic-caps-title">USB Capabilities</span>
+          <ul className="sic-caps-list">
+            {caps.map((cap, i) => (
               <li key={i}>{cap}</li>
-            ))
-          ) : (
-            <li>Analyzing system hardware...</li>
-          )}
-        </ul>
-        <p>Multiple high-bandwidth devices can share these bounds simultaneously.</p>
-      </div>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   )
 }

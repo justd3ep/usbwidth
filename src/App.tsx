@@ -1,23 +1,160 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import type { UsbNode } from './types/usb'
 import { useHardwareData } from './hooks/useHardwareData'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import SystemInfoCard from './components/SystemInfoCard'
 import TopologyTree from './components/TopologyTree'
 import WarningsPanel from './components/WarningsPanel'
 import RecommendationsPanel from './components/RecommendationsPanel'
+import AppMenu, { type MenuGroup } from './components/AppMenu'
+import AboutModal from './components/AboutModal'
+import DeviceDetailModal from './components/DeviceDetailModal'
+import DiagnosticsModal from './components/DiagnosticsModal'
+import { buildTextReport, buildJsonReport } from './utils/scanReport'
+import { checkSecurity } from './utils/securityCheck'
 import './App.css'
 
 export default function App() {
   const { data, loadState, errorMsg, fetchTopology } = useHardwareData()
+  const [aboutOpen, setAboutOpen] = useState(false)
+  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false)
+  const [selectedDevice, setSelectedDevice] = useState<UsbNode | null>(null)
+  const [lastScanAt, setLastScanAt] = useState<number | null>(null)
+  const [history, setHistory] = useState<{ at: number; count: number }[]>([])
+  const [toast, setToast] = useState<string | null>(null)
 
   // Auto-fetch on mount
   useEffect(() => { fetchTopology() }, [fetchTopology])
 
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(null), 2500)
+    return () => clearTimeout(t)
+  }, [toast])
+
+  // Track scan history when data arrives
+  useEffect(() => {
+    if (loadState !== 'success' || !data) return
+    const now = Date.now()
+    setLastScanAt(now)
+    setHistory(prev => {
+      const last = prev[0]
+      // Don't double-log if same scan within 2s (e.g. hotplug event)
+      if (last && now - last.at < 2000) return prev
+      const entry = { at: now, count: data.classifiedDevices?.length || 0 }
+      return [entry, ...prev].slice(0, 5)
+    })
+  }, [data, loadState])
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setToast('Copied to clipboard')
+    } catch {
+      setToast('Copy failed')
+    }
+  }
+
+  const menuGroups: MenuGroup[] = useMemo(() => {
+    const hasData = loadState === 'success' && data
+    const lastScanLabel = lastScanAt
+      ? `Last scan: ${new Date(lastScanAt).toLocaleTimeString()} (${history[0]?.count ?? 0} devices)`
+      : 'No scans yet'
+    const securityCount = hasData ? checkSecurity(data.classifiedDevices).filter(f => f.severity !== 'info').length : 0
+    return [
+      {
+        id: 'scan',
+        label: 'Scan',
+        items: [
+          {
+            id: 'rescan',
+            label: 'Re-scan now',
+            hint: 'Re-enumerate all USB devices',
+            shortcut: 'F5',
+            onClick: () => fetchTopology(),
+            disabled: loadState === 'loading',
+          },
+          {
+            id: 'history',
+            label: 'Scan history',
+            hint: lastScanLabel,
+            disabled: true,  // display-only; full history view is a future feature
+            onClick: () => { },
+          },
+        ],
+      },
+      {
+        id: 'tools',
+        label: 'Tools',
+        items: [
+          {
+            id: 'diagnostics',
+            label: 'Diagnostics',
+            hint: securityCount > 0
+              ? `${securityCount} potential issue${securityCount === 1 ? '' : 's'}`
+              : 'Security + port speed check',
+            disabled: !hasData,
+            onClick: () => setDiagnosticsOpen(true),
+          },
+        ],
+      },
+      {
+        id: 'export',
+        label: 'Export',
+        items: [
+          {
+            id: 'copy-text',
+            label: 'Copy report as text',
+            hint: 'For support tickets / forums',
+            disabled: !hasData,
+            onClick: () => hasData && copyToClipboard(buildTextReport(data)),
+          },
+          {
+            id: 'copy-json',
+            label: 'Copy report as JSON',
+            hint: 'For debugging / bug reports',
+            disabled: !hasData,
+            onClick: () => hasData && copyToClipboard(buildJsonReport(data)),
+          },
+          {
+            id: 'save-file',
+            label: 'Save report to file…',
+            hint: 'Choose .json or .txt on disk',
+            disabled: !hasData,
+            onClick: async () => {
+              if (!hasData) return
+              const json = buildJsonReport(data)
+              const res = await window.api.saveScan({ contents: json })
+              if (res.success) setToast('Saved')
+              else if (res.error !== 'Cancelled') setToast('Save failed: ' + res.error)
+            },
+          },
+        ],
+      },
+      {
+        id: 'help',
+        label: 'Help',
+        items: [
+          {
+            id: 'about',
+            label: 'About usbWidth',
+            onClick: () => setAboutOpen(true),
+          },
+        ],
+      },
+    ]
+  }, [data, loadState, fetchTopology, lastScanAt, history])
+
   return (
     <div className="app-shell">
+      {/* ── App menu bar (under the title bar, above the dashboard) ── */}
+      <AppMenu groups={menuGroups} />
+
       {/* ── Header ── */}
       <header className="app-header">
         <div className="app-header-left">
-          <span className="app-logo"></span>
+          <div className="app-logo">U</div>
           <div>
             <h1 className="app-title">usbWidth</h1>
             <p className="app-subtitle">See what's connected, how fast it runs, and what (if anything) is slowing it down</p>
@@ -26,12 +163,12 @@ export default function App() {
         <div className="app-header-right">
           {data && (
             <div className="app-platform-notice">
-              {data.platform === 'win32' ? '🪟 Live Windows Data' : data.platform === 'linux' ? '🐧 Live Linux Data' : '💻 Live Data'}
+              {data.platform === 'win32' ? 'Windows' : data.platform === 'linux' ? 'Linux' : 'Live Data'}
             </div>
           )}
           {data?.error && (
             <div className="app-error-notice" title={data.error}>
-              ⚠ Sysfs Partial Error
+              Sysfs Partial Error
             </div>
           )}
           <button
@@ -41,7 +178,7 @@ export default function App() {
             aria-label="Refresh hardware scan"
           >
             <span className={`refresh-icon ${loadState === 'loading' ? 'spinning' : ''}`}>↻</span>
-            {loadState === 'loading' ? 'Scanning…' : 'Scan Again'}
+            {loadState === 'loading' ? 'Scanning' : 'Scan Again'}
           </button>
         </div>
       </header>
@@ -50,7 +187,6 @@ export default function App() {
       <main className="app-main">
         {loadState === 'idle' && (
           <div className="app-state-screen">
-            <span className="app-state-icon">🔌</span>
             <h2>Ready when you are</h2>
             <p>Click <strong>Scan Again</strong> to detect your connected USB devices and check their performance.</p>
           </div>
@@ -66,7 +202,6 @@ export default function App() {
 
         {loadState === 'error' && (
           <div className="app-state-screen app-state-err">
-            <span className="app-state-icon">⚠️</span>
             <h2>Couldn't read your USB setup</h2>
             <p>{errorMsg}</p>
             <button className="app-refresh-btn" onClick={fetchTopology}>Try Again</button>
@@ -75,33 +210,30 @@ export default function App() {
 
         {loadState === 'success' && data && (
           (() => {
-            let systemHealth = 'optimal';
+            let systemHealth: 'optimal' | 'limited' | 'bottleneck' = 'optimal';
             let statusTitle = 'All Devices Operating Normally';
-            let statusSubtext = 'All connected devices are performing as expected for their type. No issues detected.';
-            let statusIcon = '🟢';
+            let statusSubtext = 'All connected devices are performing as expected for their type.';
 
-            const hasSystem = data.warnings.some((w: any) => w.source === 'SYSTEM_LIMITATION');
-            const hasHub = data.warnings.some((w: any) => w.source === 'HUB_LIMITATION');
-            const hasDevice = data.warnings.some((w: any) => w.source === 'DEVICE_LIMITATION');
+            const hasSystem = data.warnings.some((w) => w.source === 'SYSTEM_LIMITATION');
+            const hasHub = data.warnings.some((w) => w.source === 'HUB_LIMITATION');
+            const hasDevice = data.warnings.some((w) => w.source === 'DEVICE_LIMITATION');
 
-            // Count healthy external devices (OPTIMAL, ADEQUATE, or legacy NORMAL)
             const healthyCount = data.classifiedDevices.filter(
-              (d: any) => !d.isInternal &&
+              (d) => !d.isInternal &&
                 (d.status === 'OPTIMAL' || d.status === 'ADEQUATE' || d.status === 'NORMAL')
             ).length
-            const limitedCount = data.warnings.filter((w: any) => w.source === 'DEVICE_LIMITATION').length
-            const hubCount = data.warnings.filter((w: any) => w.source === 'HUB_LIMITATION').length
-            const systemCount = data.warnings.filter((w: any) => w.source === 'SYSTEM_LIMITATION').length
-            const totalExternal = data.classifiedDevices.filter((d: any) => !d.isInternal).length
-            const totalInternal = data.classifiedDevices.filter((d: any) => d.isInternal).length
+            const limitedCount = data.warnings.filter((w) => w.source === 'DEVICE_LIMITATION').length
+            const hubCount = data.warnings.filter((w) => w.source === 'HUB_LIMITATION').length
+            const systemCount = data.warnings.filter((w) => w.source === 'SYSTEM_LIMITATION').length
+            const totalExternal = data.classifiedDevices.filter((d) => !d.isInternal).length
+            const totalInternal = data.classifiedDevices.filter((d) => d.isInternal).length
 
-            // Safe, factual insight for the Connection Notes empty state
-            const externalDevices = data.classifiedDevices.filter((d: any) => !d.isInternal)
-            const allLowTier = externalDevices.length > 0 && externalDevices.every((d: any) => d.tier === 'LOW')
-            const hasHighTier = externalDevices.some((d: any) => d.tier === 'HIGH')
+            const externalDevices = data.classifiedDevices.filter((d) => !d.isInternal)
+            const allLowTier = externalDevices.length > 0 && externalDevices.every((d) => d.tier === 'LOW')
+            const hasHighTier = externalDevices.some((d) => d.tier === 'HIGH')
             const insight: string | null = data.warnings.length === 0
               ? allLowTier
-                ? 'Your connected devices are all low-bandwidth by design. They work correctly on any USB port — no high-speed connection is required.'
+                ? 'Your connected devices are all low-bandwidth by design. They work correctly on any USB port.'
                 : hasHighTier
                   ? 'Your high-bandwidth devices are connected correctly and running at their available speed.'
                   : 'All devices are operating at expected performance for their type.'
@@ -110,87 +242,62 @@ export default function App() {
             if (hasSystem) {
               systemHealth = 'bottleneck';
               statusTitle = 'Controller Load Is High';
-              statusSubtext = 'Your USB controller is handling significant traffic. Consider disconnecting unused devices to improve performance.';
-              statusIcon = '🔴';
+              statusSubtext = 'Your USB controller is handling significant traffic. Consider disconnecting unused devices.';
             } else if (hasHub || hasDevice) {
               systemHealth = 'limited';
               statusTitle = 'One or More Devices Are Speed-Limited';
               statusSubtext = hasHub
-                ? 'A high-bandwidth device is sharing its connection via a hub. Connecting it directly may improve transfer speeds.'
+                ? 'A high-bandwidth device is sharing its connection via a hub. Connecting it directly may improve speeds.'
                 : 'A storage or capture device is running at USB 2.0 speed and would benefit from a USB 3.x port.';
-              statusIcon = '🟡';
             }
 
             return (
               <div className="app-dashboard">
-                {/* Top Banner: System Status Summary */}
-                <div className={`dash-status-banner status-${systemHealth}`}>
-                  <span style={{ fontSize: '2rem' }}>{statusIcon}</span>
-                  <div>
-                    <h2 style={{ margin: '0 0 0.2rem 0', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      {statusTitle}
-                    </h2>
-                    <p style={{ margin: 0, fontSize: '0.83rem', lineHeight: 1.6, color: 'var(--text-secondary)' }}>
-                      {statusSubtext}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Top row: system info & Performance Overview */}
-                <div className="dash-top">
-                  <SystemInfoCard info={data.systemInfo} />
-
-                  <div className="dash-overview-card">
-                    <h3 className="dash-overview-title">
-                      <span>📊</span> Performance Overview
-                    </h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                      <div className="dash-overview-row">
-                        <span className="dash-overview-label">External Devices</span>
-                        <span className="dash-overview-value">{totalExternal}</span>
-                      </div>
-                      <div className="dash-overview-row">
-                        <span className="dash-overview-label">Built-in Devices</span>
-                        <span className="dash-overview-value val-muted">{totalInternal}</span>
-                      </div>
-                      <div className="dash-overview-row">
-                        <span className="dash-overview-label">Working Normally</span>
-                        <span className="dash-overview-value val-green">{healthyCount}</span>
-                      </div>
-                      <div className="dash-overview-row">
-                        <span
-                          className="dash-overview-label"
-                          title="High-bandwidth devices running below their capable speed (e.g. storage on USB 2.0)"
-                        >Speed Limited</span>
-                        <span className={`dash-overview-value ${limitedCount > 0 ? 'val-muted' : 'val-green'}`}>
-                          {limitedCount}
-                        </span>
-                      </div>
-                      <div className="dash-overview-row">
-                        <span className="dash-overview-label" title="High-bandwidth devices sharing a hub connection">Sharing via Hub</span>
-                        <span className={`dash-overview-value ${hubCount > 0 ? 'val-muted' : 'val-green'}`}>
-                          {hubCount}
-                        </span>
-                      </div>
-                      <div className="dash-overview-row">
-                        <span className="dash-overview-label">Controller Issues</span>
-                        <span className={`dash-overview-value ${systemCount > 0 ? 'val-red' : 'val-green'}`}>
-                          {systemCount}
-                        </span>
-                      </div>
+                <div className={`dash-status-strip status-${systemHealth}`}>
+                  <span className={`dash-status-dot status-${systemHealth}`} />
+                  <span className="dash-status-title">{statusTitle}</span>
+                  <span className="dash-status-subtext">{statusSubtext}</span>
+                  <div className="dash-status-stats">
+                    <div className="dash-stat">
+                      <span className="dash-stat-value">{totalExternal}</span>
+                      <span className="dash-stat-label">External</span>
+                    </div>
+                    <div className="dash-stat">
+                      <span className="dash-stat-value">{totalInternal}</span>
+                      <span className="dash-stat-label">Built-in</span>
+                    </div>
+                    <div className="dash-stat">
+                      <span className="dash-stat-value val-green">{healthyCount}</span>
+                      <span className="dash-stat-label">Healthy</span>
+                    </div>
+                    <div className="dash-stat">
+                      <span className={`dash-stat-value ${limitedCount > 0 ? 'val-amber' : 'val-green'}`}>{limitedCount}</span>
+                      <span className="dash-stat-label">Limited</span>
+                    </div>
+                    <div className="dash-stat">
+                      <span className={`dash-stat-value ${hubCount > 0 ? 'val-amber' : 'val-green'}`}>{hubCount}</span>
+                      <span className="dash-stat-label">Hub</span>
+                    </div>
+                    <div className="dash-stat">
+                      <span className={`dash-stat-value ${systemCount > 0 ? 'val-red' : 'val-green'}`}>{systemCount}</span>
+                      <span className="dash-stat-label">Controller</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Main grid */}
-                <div className="dash-grid">
-                  <div className="dash-left">
-                    <TopologyTree tree={data.tree} warnings={data.warnings} />
-                  </div>
-                  <div className="dash-right">
-                    <WarningsPanel warnings={data.warnings} insight={insight} />
-                    <RecommendationsPanel recommendations={data.recommendations} />
-                  </div>
+                <div className="dash-3col">
+                  <aside className="dash-col-left">
+                    <ErrorBoundary><SystemInfoCard info={data.systemInfo} /></ErrorBoundary>
+                  </aside>
+
+                  <section className="dash-col-center">
+                    <ErrorBoundary><TopologyTree tree={data.tree} warnings={data.warnings} onSelectDevice={setSelectedDevice} /></ErrorBoundary>
+                  </section>
+
+                  <aside className="dash-col-right">
+                    <ErrorBoundary><WarningsPanel warnings={data.warnings} insight={insight} /></ErrorBoundary>
+                    <ErrorBoundary><RecommendationsPanel recommendations={data.recommendations} /></ErrorBoundary>
+                  </aside>
                 </div>
               </div>
             )
@@ -198,26 +305,21 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="app-footer">
-        <span>usbWidth</span>
-        <span className="app-footer-note">
-        </span>
-      </footer>
-    </div>
-  )
-}
+      {/* ── Toast ── */}
+      {toast && <div className="app-toast">{toast}</div>}
 
-function StatTile({
-  icon, label, value, accent,
-}: {
-  icon: string; label: string; value: number; accent?: 'red' | 'green'
-}) {
-  return (
-    <div className={`stat-tile ${accent ? `stat-${accent}` : ''}`}>
-      <span className="stat-icon">{icon}</span>
-      <span className="stat-value">{value}</span>
-      <span className="stat-label">{label}</span>
+      {/* ── About modal ── */}
+      <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
+
+      {/* ── Device detail modal (click a row) ── */}
+      <DeviceDetailModal device={selectedDevice} onClose={() => setSelectedDevice(null)} />
+
+      {/* ── Diagnostics modal ── */}
+      <DiagnosticsModal
+        open={diagnosticsOpen}
+        onClose={() => setDiagnosticsOpen(false)}
+        devices={data?.classifiedDevices || []}
+      />
     </div>
   )
 }

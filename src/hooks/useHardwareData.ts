@@ -1,16 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
+import type { TopologyData, LoadState } from '../types/usb'
 
-export interface TopologyData {
-  systemInfo: Record<string, string>
-  tree: any[]
-  classifiedDevices: any[]
-  warnings: any[]
-  recommendations: any[]
-  error: string | null
-  platform: string
-}
-
-export type LoadState = 'idle' | 'loading' | 'success' | 'error'
+export type { TopologyData, LoadState }
 
 export function useHardwareData() {
   const [data, setData] = useState<TopologyData | null>(null)
@@ -38,9 +29,8 @@ export function useHardwareData() {
   // Subscribe to real-time Windows hardware changes
   useEffect(() => {
     if (window.api && window.api.onHardwareUpdate) {
-      window.api.onHardwareUpdate((result: any) => {
+      window.api.onHardwareUpdate((result) => {
         if (result && !result.error) {
-          console.log('[Real-Time] Hardware change detected => Data Refreshed')
           setData(result)
           setLoadState('success')
         }

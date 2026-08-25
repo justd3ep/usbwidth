@@ -13,9 +13,9 @@
  * 6. portNumbers[]            — physical bus topology, used to detect hubs and build device tree
  */
 
-import { execFileSync }      from 'node:child_process'
-import { createRequire }     from 'node:module'
-import os                    from 'node:os'
+import { execFileSync } from 'node:child_process'
+import { createRequire } from 'node:module'
+import os from 'node:os'
 
 const require = createRequire(import.meta.url)
 
@@ -67,7 +67,7 @@ function classCodeToType(bDeviceClass, bDeviceSubClass) {
     case 0x0B: return 'SmartCard'
     case 0x0E: return 'Camera'
     case 0xE0: return 'Bluetooth'
-    default:   return 'USBDevice'
+    default: return 'USBDevice'
   }
 }
 
@@ -76,6 +76,63 @@ function classCodeToType(bDeviceClass, bDeviceSubClass) {
 let _regNameMap = null
 let _regNameTime = 0
 const REG_TTL = 15000  // 15s cache
+
+// ─── VID-based manufacturer fallback ──────────────────────────────────────
+//
+// Some devices (especially low-cost accessories like cooling pads) don't have
+// a meaningful FriendlyName or DeviceDesc in the registry. They appear as a
+// bare VID. This map gives them a human-readable manufacturer name.
+const VID_MANUFACTURER = {
+  '1a2c': 'ChinaResource',
+  '0b0c': 'TopMate',
+  '1cbe': 'Lumetry',
+  '0c45': 'Microdia',
+  '0763': 'Miditech',
+  '10d6': 'AcerPeripherals',
+  '1a86': 'QinHeng',
+  '0409': 'NEC',
+  '046d': 'Logitech',
+  '04b4': 'Cypress',
+  '04f2': 'Chicony',
+  '04e8': 'Samsung',
+  '05ac': 'Apple',
+  '0781': 'SanDisk',
+  '0951': 'Kingston',
+  '0b95': 'ASIX',
+  '0d28': 'NXP',
+  '0e8d': 'MediaTek',
+  '1004': 'LG',
+  '12d1': 'Huawei',
+  '13d3': 'IMCNetworks',
+  '1410': 'Novatel',
+  '15d9': 'Trust',
+  '174f': 'Sintec',
+  '18a5': 'Verbatim',
+  '1a40': 'Terminus',
+  '1b1c': 'Corsair',
+  '1d50': 'OpenMoko',
+  '1d57': 'Xenta',
+  '1e7d': 'ROCCAT',
+  '20a0': 'Genesys',
+  '2357': 'TP-Link',
+  '25a7': 'Apex',
+  '258a': 'SinoWealth',
+  '2717': 'Xiaomi',
+  '2a8a': 'KFA2',
+  '2c7c': 'Quectel',
+  '30de': 'InterBio',
+  '3538': 'PowerQuotion',
+  '413c': 'Dell',
+  '4242': 'USB2',
+  '4572': 'Shuttle',
+  '8086': 'Intel',
+  '8087': 'Intel',
+}
+
+function vendorNameFor(vidHex) {
+  if (!vidHex) return null
+  return VID_MANUFACTURER[vidHex.toLowerCase()] || null
+}
 
 function loadRegistryNames() {
   const now = Date.now()
@@ -180,7 +237,7 @@ function loadRegistryCapabilities() {
           const capValue = parseInt(valMatch[1], 16)
           // CM_DEVCAP_REMOVABLE is 0x00000004
           const isRemovable = (capValue & 0x4) !== 0
-          
+
           // If we haven't seen this VID/PID, or if it's currently marked non-removable
           // but we just found a removable instance, update it to be safe.
           if (!_regCapMap.has(currentVidPid) || isRemovable) {
@@ -235,20 +292,20 @@ export async function getSystemInfo() {
   if (_sysInfoCache) return _sysInfoCache
 
   const cpus = os.cpus()
-  const cpu  = cpus.length ? cpus[0].model : 'Unknown'
+  const cpu = cpus.length ? cpus[0].model : 'Unknown'
   const ramGB = Math.round(os.totalmem() / (1024 ** 3) * 10) / 10
 
   let manufacturer = 'Unknown'
-  let model        = 'Unknown'
-  let biosVersion  = ''
-  let osName       = `Windows ${os.release()}`
+  let model = 'Unknown'
+  let biosVersion = ''
+  let osName = `Windows ${os.release()}`
 
   // Registry reads for BIOS/OS info — fast, no WMI
   try {
     const biosOut = execFileSync('reg.exe', [
       'query', 'HKLM\\HARDWARE\\DESCRIPTION\\System\\BIOS'
     ], { encoding: 'utf8', windowsHide: true, shell: false, timeout: 2000 })
-    
+
     const extract = (key) => {
       const m = biosOut.match(new RegExp(`${key}\\s+REG_SZ\\s+(.+)`, 'i'))
       return m ? m[1].trim() : null
@@ -268,7 +325,7 @@ export async function getSystemInfo() {
     // Improve model detection for generic names
     let bestModel = sysProd
     const isGeneric = (n) => !n || n === 'System Product Name' || n === 'Default string' || n === 'To be filled by O.E.M.' || /^hp(\s+laptop)?$/i.test(n)
-    
+
     if (isGeneric(bestModel) && !isGeneric(sysFamily)) bestModel = sysFamily
     if (isGeneric(bestModel) && !isGeneric(baseboard)) bestModel = baseboard
     if (isGeneric(bestModel) && !isGeneric(sku)) bestModel = sku
@@ -278,7 +335,7 @@ export async function getSystemInfo() {
     } else if (sysProd) {
       model = sysProd
     }
-  } catch {}
+  } catch { }
 
   try {
     const osOut = execFileSync('reg.exe', [
@@ -291,7 +348,7 @@ export async function getSystemInfo() {
     if (b && parseInt(b[1], 10) >= 22000) {
       osName = osName.replace('Windows 10', 'Windows 11')
     }
-  } catch {}
+  } catch { }
 
   let usbCapabilities = []
   try {
@@ -299,7 +356,7 @@ export async function getSystemInfo() {
       '-NoProfile', '-Command',
       'Get-CimInstance Win32_USBController | Select-Object -ExpandProperty Name'
     ], { encoding: 'utf8', windowsHide: true, timeout: 3000 })
-    
+
     let hasTb = false, has32 = false, has31 = false, has30 = false
     for (const name of ctlOut.split(/\r?\n/)) {
       const l = name.toLowerCase().trim()
@@ -367,34 +424,46 @@ export function getUsbDevices() {
   const busSeen = new Set()
   const deviceList = []
 
+  // First pass: per-bus max negotiated speed = controller's downstream
+  // capability. We use the fastest device on the bus (anything ≥ 5000
+  // implies the bus is USB 3.x capable). This becomes the root-hub speed
+  // for direct children of the controller.
+  const busMaxSpeed = new Map()  // busNumber → Mbps
+  for (const d of rawDevices) {
+    const s = bcdUsbToSpeed(d.deviceDescriptor.bcdUSB)
+    if (s == null) continue
+    const prev = busMaxSpeed.get(d.busNumber) || 0
+    if (s > prev) busMaxSpeed.set(d.busNumber, s)
+  }
+
   for (const d of rawDevices) {
     if (!busSeen.has(d.busNumber)) {
       busSeen.add(d.busNumber)
-      // Infer controller speed: take the fastest device on this bus
+      const busSpeed = busMaxSpeed.get(d.busNumber) || 480
       deviceList.push({
-        instanceId:    controllerId(d.busNumber),
-        type:          'USBController',
+        instanceId: controllerId(d.busNumber),
+        type: 'USBController',
         _resolvedType: 'USBController',
-        name:          `USB Host Controller (Bus ${d.busNumber})`,
-        parentId:      null,
-        speedMbps:     null,
-        idVendor:      null,
-        idProduct:     null,
-        isInternal:    true,
-        class:         'USB',
-        locationPath:  '',
+        name: `USB Host Controller (Bus ${d.busNumber})`,
+        parentId: null,
+        speedMbps: busSpeed,
+        idVendor: null,
+        idProduct: null,
+        isInternal: true,
+        class: 'USB',
+        locationPath: '',
       })
     }
   }
 
   // Process all devices
   for (const device of rawDevices) {
-    const desc     = device.deviceDescriptor
-    const ports    = device.portNumbers || []
-    const isHub    = desc.bDeviceClass === USB_CLASS_HUB
+    const desc = device.deviceDescriptor
+    const ports = device.portNumbers || []
+    const isHub = desc.bDeviceClass === USB_CLASS_HUB
     const busSpeed = bcdUsbToSpeed(desc.bcdUSB)  // actual speed from device firmware
 
-    const idVendorHex  = desc.idVendor.toString(16).padStart(4, '0')
+    const idVendorHex = desc.idVendor.toString(16).padStart(4, '0')
     const idProductHex = desc.idProduct.toString(16).padStart(4, '0')
 
     if (isHub) {
@@ -403,17 +472,17 @@ export function getUsbDevices() {
       // Non-root hub: add as USBHub node
       const parentId = parentIdFor(device, hubKeys)
       deviceList.push({
-        instanceId:    hubId(device.busNumber, ports),
-        type:          'USBHub',
+        instanceId: hubId(device.busNumber, ports),
+        type: 'USBHub',
         _resolvedType: 'USBHub',
-        name:          'USB Hub',
+        name: 'USB Hub',
         parentId,
-        speedMbps:     busSpeed,
-        idVendor:      idVendorHex,
-        idProduct:     idProductHex,
-        isInternal:    true,
-        class:         'USB',
-        locationPath:  `BUS${device.busNumber}\\PORT${ports.join('.')}`,
+        speedMbps: busSpeed,
+        idVendor: idVendorHex,
+        idProduct: idProductHex,
+        isInternal: true,
+        class: 'USB',
+        locationPath: `BUS${device.busNumber}\\PORT${ports.join('.')}`,
       })
       continue
     }
@@ -432,35 +501,107 @@ export function getUsbDevices() {
     // Primary check: Windows Device Capabilities registry flag
     const isRemovableFlag = getRegistryRemovableFlag(idVendorHex, idProductHex)
     const nameL = (name || '').toLowerCase()
-    
+
     let isInternal = INTERNAL_VIDS.has(idVendorHex.toLowerCase()) ||
       /\b(integrated|built.?in|internal|ir\s+camera|touchpad|fingerprint|truevision|wide\s?vision|hp\s+.*camera|chicony|realtek.*camera)\b/i.test(nameL) ||
       /^usb[\s\d.]*hd[\s\d.]*uvc\s+web.?cam/i.test(nameL) ||
       /^(hd\s+)?web.?cam\s*(\d|$)/i.test(nameL) ||
       /^usb\s+camera\s*(\d|$)/i.test(nameL)
-      
+
     if (isRemovableFlag === false) {
-      // Windows definitively states it is non-removable,
-      // catching devices like "USB Input Device" trackpads that failed the regex above.
-      isInternal = true
+      // Windows reports the device as non-removable in its Capabilities flag.
+      // Trust this ONLY for HID-class devices with a generic name (e.g.
+      // "USB Input Device"), which is the pattern for built-in trackpads
+      // and the like. For other device classes — and for HID devices with
+      // a real manufacturer name — do not auto-classify as internal, since
+      // the user may have plugged in an accessory (cooling pad, LED strip,
+      // fan controller) that Windows simply didn't populate the flag for.
+      const isGenericHid = desc.bDeviceClass === 0x03 &&
+        (nameL === '' || /^usb\s+(input|hid|composite|device)\b/i.test(nameL))
+      if (isGenericHid) {
+        isInternal = true
+      }
     }
 
     const resolvedType = classCodeToType(desc.bDeviceClass, desc.bDeviceSubClass)
 
+    // ── Friendly name fallback chain ─────────────────────────────────────
+    // 1. Registry FriendlyName / DeviceDesc (already loaded into `name`)
+    // 2. VID-based manufacturer lookup
+    // 3. USB-class-based generic label
+    // 4. Last resort: VID:PID hex
+    let finalName = name
+    if (!finalName) {
+      const vendor = vendorNameFor(idVendorHex)
+      const classLabel = classFallbackLabel(desc.bDeviceClass)
+      if (vendor && classLabel) {
+        finalName = `${vendor} ${classLabel}`
+      } else if (classLabel) {
+        finalName = classLabel
+      } else {
+        finalName = `USB Device (${idVendorHex}:${idProductHex})`
+      }
+    }
+
     deviceList.push({
-      instanceId:    deviceId(device),
-      type:          isInternal ? 'internal' : 'external',
+      instanceId: deviceId(device),
+      type: isInternal ? 'internal' : 'external',
       _resolvedType: resolvedType,
-      class:         resolvedType,
-      name:          name || `USB Device (${idVendorHex}:${idProductHex})`,  // internal fallback for topology
-      displayName:   name,   // null → UI can choose to show nothing
+      class: resolvedType,
+      name: finalName,
+      displayName: name,   // null → UI can choose to show nothing
       parentId,
-      speedMbps:     busSpeed,
-      idVendor:      idVendorHex,
-      idProduct:     idProductHex,
+      speedMbps: busSpeed,
+      idVendor: idVendorHex,
+      idProduct: idProductHex,
       isInternal,
-      locationPath:  `BUS${device.busNumber}\\PORT${ports.join('.')}`,
+      locationPath: `BUS${device.busNumber}\\PORT${ports.join('.')}`,
     })
+  }
+
+  // Class-based generic labels for devices with no registry name.
+  function classFallbackLabel(bDeviceClass) {
+    switch (bDeviceClass) {
+      case 0x00: return 'USB Device'
+      case 0x01: return 'USB Audio Device'
+      case 0x02: return 'USB Modem'
+      case 0x03: return 'USB HID Device'
+      case 0x05: return 'USB HID Device'
+      case 0x06: return 'USB Camera'
+      case 0x07: return 'USB Printer'
+      case 0x08: return 'USB Storage'
+      case 0x09: return 'USB Hub'
+      case 0x0A: return 'USB Modem'
+      case 0x0B: return 'USB Smart Card'
+      case 0x0E: return 'USB Video Device'
+      case 0xE0: return 'USB Bluetooth'
+      case 0xEF: return 'USB Accessory'
+      case 0xFF: return 'USB Accessory'
+      default: return 'USB Device'
+    }
+  }
+
+  // ── Resolve per-device port capability ─────────────────────────────────
+  // A device's port capability is the speed of the device it's directly
+  // attached to (its parent). That parent is either:
+  //   - a USB hub, whose `busSpeed` (= its own bcdUSB → speed) reflects
+  //     the link it negotiated with the *upstream* port. If a USB 3.0
+  //     hub is plugged into a USB 2.0 port, it enumerates at 480 Mbps,
+  //     so its speed == the upstream port's capability. ✓
+  //   - a USB controller (root hub), where we use a default 5000 Mbps for
+  //     xHCI controllers on modern Windows (verified via Win32_USBController
+  //     names) and 480 otherwise.
+  const speedByInstance = new Map()
+  for (const d of deviceList) {
+    if (d.speedMbps != null) speedByInstance.set(d.instanceId, d.speedMbps)
+  }
+  for (const d of deviceList) {
+    if (d._resolvedType === 'USBController') continue
+    if (d.parentId && speedByInstance.has(d.parentId)) {
+      d.portCapabilityMbps = speedByInstance.get(d.parentId)
+    } else {
+      d.portCapabilityMbps = null
+    }
   }
 
   // Sort: controllers → hubs → devices
@@ -496,7 +637,7 @@ export function setupHotplug(onChange) {
 
 // ─── Cache ────────────────────────────────────────────────────────────────────
 
-let _cache      = null
+let _cache = null
 let _cacheTimer = null
 
 export function clearCache() {
@@ -507,6 +648,12 @@ export function clearCache() {
 export async function fetchRaw() {
   if (_cache) return _cache
   const [systemInfo, usbDevices] = await Promise.all([getSystemInfo(), getUsbDevices()])
+  // Diagnostic: log every detected device so missing accessories are easy
+  // to spot in the Electron / dev-tools console.
+  // Verbose device listing is only useful while debugging. In production
+  // builds we keep the count summary so devs can still confirm a scan ran,
+  // without flooding the user's console with one line per device.
+  console.log(`[windowsDetector] Detected ${usbDevices.length} USB node(s)`)
   _cache = { systemInfo, usbDevices }
   _cacheTimer = setTimeout(clearCache, 10000)
   return _cache

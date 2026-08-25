@@ -141,6 +141,15 @@ async function guessType(devDir) {
   return CLASS_MAP[cls?.toLowerCase()] || 'USBDevice'
 }
 
+// Read version (bcdUSB) attribute for diagnostic / display purposes.
+async function readBcdUsb(devDir) {
+  const v = await readAttr(devDir, 'version')
+  if (!v) return null
+  // e.g. " 3.00" or " 2.00"
+  const m = v.match(/(\d+)\.(\d+)/)
+  return m ? parseFloat(`${m[1]}.${m[2]}`) : null
+}
+
 export async function getUsbDevices() {
   let entries
   try {
@@ -165,14 +174,15 @@ export async function getUsbDevices() {
     if (isNaN(busNum)) continue
 
     const isRootHub = entry.startsWith('usb')  // e.g. usb1
-    const devNumStr  = await readAttr(entry, 'devnum')
-    const devNum     = devNumStr ? parseInt(devNumStr, 10) : 0
-    const speedStr   = await readAttr(entry, 'speed')
-    const speedMbps  = parseSpeedMbps(speedStr)
-    const product    = await readAttr(entry, 'product')
-    const mfr        = await readAttr(entry, 'manufacturer')
-    const idVendor   = await readAttr(entry, 'idVendor')
-    const idProduct  = await readAttr(entry, 'idProduct')
+    const devNumStr = await readAttr(entry, 'devnum')
+    const devNum = devNumStr ? parseInt(devNumStr, 10) : 0
+    const speedStr = await readAttr(entry, 'speed')
+    const speedMbps = parseSpeedMbps(speedStr)
+    const bcdUsb = await readBcdUsb(entry)
+    const product = await readAttr(entry, 'product')
+    const mfr = await readAttr(entry, 'manufacturer')
+    const idVendor = await readAttr(entry, 'idVendor')
+    const idProduct = await readAttr(entry, 'idProduct')
     const removableStr = await readAttr(entry, 'removable')
 
     // Friendly name: lsusb > product attr > vendor:product id
@@ -183,8 +193,8 @@ export async function getUsbDevices() {
     // Normalize legacy USB 3.x strings to USB 3.2
     if (name) {
       name = name.replace(/USB\s*3\.1\s*Gen\s*2/ig, 'USB 3.2 Gen 2')
-                 .replace(/USB\s*3\.1\s*Gen\s*1/ig, 'USB 3.2 Gen 1')
-                 .replace(/USB\s*3\.0/ig, 'USB 3.2 Gen 1')
+        .replace(/USB\s*3\.1\s*Gen\s*1/ig, 'USB 3.2 Gen 1')
+        .replace(/USB\s*3\.0/ig, 'USB 3.2 Gen 1')
     }
 
     // Parent ID: derive from path
@@ -230,10 +240,31 @@ export async function getUsbDevices() {
       name: mfr ? `${mfr} ${name}` : name,
       parentId,
       speedMbps,
+      bcdUsb,
       idVendor: idVendor || null,
       idProduct: idProduct || null,
       isInternal,
     })
+  }
+
+  // ── Resolve per-device port capability ─────────────────────────────────
+  // The capability of a device's port is determined by the speed of the
+  // *parent hub* (the link the device is plugged into). If the device is
+  // directly attached to a root hub, the root hub's `speed` IS the port's
+  // capability — and that comes from sysfs directly (no guessing).
+  //
+  // Why this is reliable: a USB 3.0 hub attached to a USB 2.0 port will
+  // enumerate at 480 Mbps because it negotiates down to the port. So
+  // the hub's `speed` attribute = the port's max capability.
+  const speedByInstance = new Map()
+  for (const d of devices) {
+    if (d.speedMbps != null) speedByInstance.set(d.instanceId, d.speedMbps)
+  }
+
+  for (const d of devices) {
+    if (d.type === 'USBController') continue  // controllers have no port
+    const parentSpeed = d.parentId ? speedByInstance.get(d.parentId) : null
+    d.portCapabilityMbps = parentSpeed ?? null
   }
 
   // Sort so controllers first, then hubs, then devices

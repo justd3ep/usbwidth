@@ -20,6 +20,21 @@ export default defineConfig({
               external: [
                 'usb',
               ],
+              // Hardware detector is dynamically imported from main.ts but also
+              // exports a function (registerHotplug) that is only referenced via
+              // destructure inside that dynamic import. Without listing it here,
+              // Rollup tree-shakes it out. Declaring it as an additional input
+              // makes Rollup keep all its exports.
+              input: {
+                main: 'electron/main.ts',
+                hardwareDetector: 'electron/hardwareDetector.js',
+                topologyBuilder: 'electron/topologyBuilder.js',
+                classifier: 'electron/classifier.js',
+                ruleEngine: 'electron/ruleEngine.js',
+                recommendationEngine: 'electron/recommendationEngine.js',
+                linuxDetector: 'electron/linuxDetector.js',
+                windowsDetector: 'electron/windowsDetector.js',
+              },
             },
           },
         },

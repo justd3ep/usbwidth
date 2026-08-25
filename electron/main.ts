@@ -1,6 +1,7 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu, dialog, shell, clipboard } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
+import fs from 'node:fs/promises'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // Must be set before app is ready — disables Chromium sandbox at env level
@@ -40,7 +41,7 @@ function createWindow() {
     icon: path.join(process.env.VITE_PUBLIC, 'icon.png'),
     ...(process.platform === 'darwin' ? { titleBarStyle: 'hiddenInset' } : {}),
     webPreferences: {
-      preload: path.join(__dirname, 'preload.mjs'),
+      preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
@@ -113,6 +114,40 @@ ipcMain.handle('get-topology', async (_event) => {
   }
 })
 
+// ─── Menu IPC handlers ────────────────────────────────────────────────────
+
+// Save the current scan to a JSON file chosen by the user.
+ipcMain.handle('save-scan', async (_event, payload: { defaultName?: string; contents: string }) => {
+  if (!win) return { success: false, error: 'No window' }
+  const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+  const defaultName = payload.defaultName || `usbwidth-scan-${ts}.json`
+  const result = await dialog.showSaveDialog(win, {
+    title: 'Save scan',
+    defaultPath: defaultName,
+    filters: [
+      { name: 'JSON report', extensions: ['json'] },
+      { name: 'Text report', extensions: ['txt'] },
+      { name: 'All files', extensions: ['*'] },
+    ],
+  })
+  if (result.canceled || !result.filePath) return { success: false, error: 'Cancelled' }
+  try {
+    await fs.writeFile(result.filePath, payload.contents, 'utf8')
+    return { success: true, path: result.filePath }
+  } catch (err: any) {
+    return { success: false, error: err.message }
+  }
+})
+
+// Open a URL in the user's default browser.
+ipcMain.handle('open-external', async (_event, url: string) => {
+  if (typeof url !== 'string') return { success: false, error: 'Invalid URL' }
+  // Only allow http(s) to be safe
+  if (!/^https?:\/\//i.test(url)) return { success: false, error: 'Only http(s) URLs allowed' }
+  await shell.openExternal(url)
+  return { success: true }
+})
+
 // ─── App lifecycle ─────────────────────────────────────────────────────────────
 
 app.on('window-all-closed', () => {
@@ -128,4 +163,11 @@ app.on('activate', () => {
   }
 })
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  // Remove the default File/Edit/View/Window/Help menu bar — we don't
+  // use it and it eats vertical space. Has no effect on macOS where
+  // the app menu is expected to exist; that path falls back to a minimal
+  // empty menu via setApplicationMenu.
+  Menu.setApplicationMenu(null)
+  createWindow()
+})

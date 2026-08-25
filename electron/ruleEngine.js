@@ -156,7 +156,7 @@ export function runRules(tree, classifiedDevices) {
   _warningCounter = 0
   const issues = []
 
-  // Build parent-lookup map
+  // Build parent-lookup map (used for system-level controller-load check)
   const deviceMap = new Map()
   function addToMap(nodes) {
     for (const node of nodes) {
@@ -167,36 +167,31 @@ export function runRules(tree, classifiedDevices) {
   addToMap(tree)
 
   for (const device of classifiedDevices) {
-    // Resolve port speed (best-effort, used for display only)
-    let portSpeed = null
-    let current   = device.parentId ? deviceMap.get(device.parentId) : null
-    while (current) {
-      if (current.speedMbps && current.speedMbps > 480) { portSpeed = current.speedMbps; break }
-      else if (current.speedMbps === 480)                { portSpeed = 480 }
-      current = current.parentId ? deviceMap.get(current.parentId) : null
-    }
-    if (!portSpeed && device.speedMbps) portSpeed = device.speedMbps
+    // Port capability is now measured directly by the detector from the
+    // parent hub's enumerated speed (Linux: sysfs speed; Windows: hub's
+    // bcdUSB → negotiated speed). No more tree walking / guessing.
+    const portSpeed = device.portCapabilityMbps ?? null
 
     const { status, source } = evaluateDevice(device)
 
-    device.status        = status
+    device.status = status
     device.statusMessage = buildStatusMessage(device, status, source)
 
     // Only add to warnings list for LIMITED devices
     if (status === STATUS.LIMITED) {
       issues.push({
-        id:               makeId(),
-        severity:         'warning',
-        status:           device.status,
-        title:            buildWarningSummary(device, source),
-        detail:           buildWarningDetail(device, source),
-        affectedIds:      [device.instanceId],
-        deviceName:       device.name,
-        source:           source,
-        portCapability:   portSpeed,
+        id: makeId(),
+        severity: 'warning',
+        status: device.status,
+        title: buildWarningSummary(device, source),
+        detail: buildWarningDetail(device, source),
+        affectedIds: [device.instanceId],
+        deviceName: device.name,
+        source: source,
+        portCapability: portSpeed,
         deviceCapability: device.speedMbps,
-        connectionPath:   device.viaHub ? 'Via Hub' : 'Direct',
-        verdict:          device.statusMessage,
+        connectionPath: device.viaHub ? 'Via Hub' : 'Direct',
+        verdict: device.statusMessage,
       })
     }
   }
@@ -220,20 +215,20 @@ export function runRules(tree, classifiedDevices) {
     if (count >= 3) {
       const ctrl = deviceMap.get(controllerId)
       issues.unshift({
-        id:               makeId(),
-        severity:         'critical',
-        status:           STATUS.LIMITED,
-        title:            'Multiple High-Speed Devices on One Controller',
-        detail:           `${count} high-bandwidth devices are competing on the same USB controller. ` +
-                          `You may notice slowdowns during simultaneous transfers. ` +
-                          `Spreading devices across different ports can help.`,
-        affectedIds:      [],
-        deviceName:       ctrl ? (ctrl.name || 'USB Controller') : 'USB Controller',
-        source:           'SYSTEM_LIMITATION',
-        portCapability:   null,
+        id: makeId(),
+        severity: 'critical',
+        status: STATUS.LIMITED,
+        title: 'Multiple High-Speed Devices on One Controller',
+        detail: `${count} high-bandwidth devices are competing on the same USB controller. ` +
+          `You may notice slowdowns during simultaneous transfers. ` +
+          `Spreading devices across different ports can help.`,
+        affectedIds: [],
+        deviceName: ctrl ? (ctrl.name || 'USB Controller') : 'USB Controller',
+        source: 'SYSTEM_LIMITATION',
+        portCapability: null,
         deviceCapability: null,
-        connectionPath:   'Controller',
-        verdict:          'Multiple high-bandwidth devices sharing one controller.',
+        connectionPath: 'Controller',
+        verdict: 'Multiple high-bandwidth devices sharing one controller.',
       })
     }
   }

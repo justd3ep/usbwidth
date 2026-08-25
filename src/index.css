@@ -1,60 +1,52 @@
-/* ─── Global Design System ─────────────────────────────────────────── */
+/* ─── Global Design System ─ GPU Optimized ──────────────────────── */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* ─── Tokens ────────────────────────────────────────────────────────── */
 :root {
   /* ── Backgrounds ── */
-  --bg-base:        #0B1220;   /* deep navy, never pure black */
-  --bg-surface:     #0F172A;   /* slate-900 — panels sit here */
-  --bg-elevated:    #162032;   /* cards float above surface */
-  --bg-overlay:     #1E2D45;   /* dropdowns, tooltips */
+  --bg-base: #000000;
+  --bg-surface: #0a0a0a;
+  --bg-elevated: #111111;
+  --bg-overlay: #1a1a1a;
 
   /* ── Borders ── */
-  --border-subtle:  #1E293B;   /* solid card outlines (slate-800) */
-  --border-muted:   rgba(255, 255, 255, 0.06); /* very subtle internal dividers */
-  --glass-border:   rgba(255, 255, 255, 0.07); /* translucent borders */
+  --border-subtle: #222222;
+  --border-muted: #1a1a1a;
 
-  /* Legacy alias kept for components that still reference it */
-  --glass-bg:       rgba(22, 32, 50, 0.85);
-
-  /* ── Accent palette ── */
-  --accent-blue:    #3B82F6;   /* primary */
-  --accent-blue-dim: rgba(59, 130, 246, 0.15);
-  --accent-violet:  #8B5CF6;
-  --accent-cyan:    #06B6D4;
-  --accent-green:   #22C55E;
-  --accent-amber:   #F59E0B;   /* single amber token — all warnings use this */
-  --accent-red:     #EF4444;
-  --accent-glow:    rgba(59, 130, 246, 0.18);
+  /* ── Accent palette (monochrome) ── */
+  --accent-green: #00FF00;
+  --accent-amber: #FFAA00;
+  --accent-red: #FF3333;
 
   /* ── Text ── */
-  --text-primary:   #E2E8F0;   /* slate-200 — headings & values */
-  --text-secondary: #94A3B8;   /* slate-400 — body text, descriptions */
-  --text-muted:     #64748B;   /* slate-500 — labels, hints */
-  --text-faint:     #475569;   /* slate-600 — timestamps, footnotes */
+  --text-primary: #FFFFFF;
+  --text-secondary: #AAAAAA;
+  --text-muted: #666666;
+  --text-faint: #444444;
 
   /* ── Radius ── */
-  --radius-sm:  6px;
-  --radius-md:  10px;
-  --radius-lg:  14px;
-  --radius-xl:  20px;
-
-  /* ── Shadows ── */
-  --shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md:  0 4px 16px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
-  --shadow-lg:  0 10px 40px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.35);
-  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
 
   /* ── Motion ── */
-  --transition-fast:   0.12s ease;
-  --transition-normal: 0.2s ease;
+  --transition-fast: 0s;
+  --transition-normal: 0s;
 }
 
 /* ─── Reset ──────────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
   width: 100%;
 }
@@ -66,10 +58,25 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 /* ─── Scrollbar ─────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.10); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.18); }
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333333;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444444;
+}

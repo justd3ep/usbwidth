@@ -1,0 +1,190 @@
+/* DeviceDetailModal.css */
+
+.ddm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.ddm-modal {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    max-width: 540px;
+    width: 100%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+.ddm-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.ddm-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    word-break: break-word;
+}
+
+.ddm-subtitle {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin: 0.1rem 0 0 0;
+}
+
+.ddm-close {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 0.2rem;
+}
+
+.ddm-close:hover {
+    color: var(--text-primary);
+}
+
+.ddm-body {
+    padding: 0.5rem 1rem 1rem 1rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.ddm-section h3 {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0.4rem 0 0.35rem 0;
+}
+
+.ddm-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+}
+
+.ddm-row {
+    display: grid;
+    grid-template-columns: 110px 1fr auto;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.5rem;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-size: 0.7rem;
+}
+
+.ddm-key {
+    color: var(--text-muted);
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.ddm-val {
+    color: var(--text-primary);
+    word-break: break-word;
+}
+
+.ddm-val.mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+}
+
+.ddm-val-warn {
+    color: var(--accent-amber);
+    font-weight: 600;
+}
+
+.ddm-link {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    font-size: 0.6rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.ddm-link:hover {
+    background: var(--bg-overlay);
+}
+
+.ddm-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.45rem;
+    border-radius: 3px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.tier-high {
+    background: rgba(255, 51, 51, 0.12);
+    color: var(--accent-red);
+}
+
+.tier-medium {
+    background: rgba(255, 170, 0, 0.12);
+    color: var(--accent-amber);
+}
+
+.tier-low {
+    background: rgba(0, 255, 0, 0.1);
+    color: var(--accent-green);
+}
+
+.status-optimal {
+    background: rgba(0, 255, 0, 0.1);
+    color: var(--accent-green);
+}
+
+.status-adequate {
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+}
+
+.status-limited {
+    background: rgba(255, 170, 0, 0.1);
+    color: var(--accent-amber);
+}
+
+.status-bottleneck {
+    background: rgba(255, 51, 51, 0.1);
+    color: var(--accent-red);
+}
+
+.ddm-note {
+    margin: 0.4rem 0 0 0;
+    padding: 0.4rem 0.6rem;
+    background: var(--bg-elevated);
+    border-left: 2px solid var(--text-muted);
+    border-radius: var(--radius-sm);
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
