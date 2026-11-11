@@ -1,4 +1,4 @@
-# 🚀 usbwidth: Hardware Topology & Bottleneck Advisor
+#  usbwidth: Hardware Topology & Bottleneck Advisor
 
 **usbwidth** is a Linux-native desktop utility designed to visualize your USB hardware hierarchy and intelligently identify performance bottlenecks. Built with **Electron, React, and TypeScript**, it provides real-time insights into how your peripherals are connected and whether they are operating at their full potential.
 
