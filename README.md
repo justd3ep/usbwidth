@@ -4,16 +4,16 @@
 
 ---
 
-## ✨ Key Features
+##  Key Features
 
-- **🔍 Live Topology Tree**: Visualize your entire USB controller, hub, and device hierarchy in an interactive, real-time tree view.
-- **🧠 Context-Aware Rule Engine**: Intelligent status classification for every device:
-    - ✅ **NORMAL**: Devices operating at their intended speed.
-    - ⚠️ **LIMITED**: Devices functioning correctly but restricted by older standards (e.g., USB 2.0).
-    - ❌ **WARNING**: High-bandwidth devices (SSDs, Capture Cards) severely bottlenecked by slow ports or shared hubs.
-- **💡 Smart Recommendations**: Actionable, prioritized suggestions to optimize your hardware setup.
-- **🏷️ Bandwidth Tiering**: Automatic classification of devices into **LOW**, **MEDIUM**, and **HIGH** bandwidth tiers based on hardware signatures.
-- **🐧 Linux Native**: Low-level integration with `sysfs` and `lsusb` (no Windows-specific overhead).
+- ** Live Topology Tree**: Visualize your entire USB controller, hub, and device hierarchy in an interactive, real-time tree view.
+- ** Context-Aware Rule Engine**: Intelligent status classification for every device:
+    -  **NORMAL**: Devices operating at their intended speed.
+    -  **LIMITED**: Devices functioning correctly but restricted by older standards (e.g., USB 2.0).
+    -  **WARNING**: High-bandwidth devices (SSDs, Capture Cards) severely bottlenecked by slow ports or shared hubs.
+- ** Smart Recommendations**: Actionable, prioritized suggestions to optimize your hardware setup.
+- ** Bandwidth Tiering**: Automatic classification of devices into **LOW**, **MEDIUM**, and **HIGH** bandwidth tiers based on hardware signatures.
+- ** Linux Native**: Low-level integration with `sysfs` and `lsusb` (no Windows-specific overhead).
 
 ---
 
