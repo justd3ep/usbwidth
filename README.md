@@ -28,7 +28,7 @@
 
 ---
 
-## 🚀 How to Run on Linux
+##  How to Run on Linux
 
 ### Option 1: Using the AppImage (Recommended)
 1. Download the latest `usbwidth-Linux-x.x.x.AppImage` from the [Releases](https://github.com/justd3ep/usbwidth/releases) page.
