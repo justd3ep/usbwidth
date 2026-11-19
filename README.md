@@ -55,7 +55,7 @@
 
 ---
 
-## 🧠 How it Works
+##  How it Works
 The application traverses `/sys/bus/usb/devices/` to build a real-time map of your system's hardware state. It calculates physical port paths and cross-references them against a weighted tier-mapping system to distinguish between a "slow" device (like a keyboard) and a "bottlenecked" device (like an SSD on a USB 2.0 hub).
 
 ---
