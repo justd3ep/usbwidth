@@ -60,5 +60,5 @@ The application traverses `/sys/bus/usb/devices/` to build a real-time map of yo
 
 ---
 
-## 📄 License
+##  License
 Distributed under the MIT License. See `LICENSE` for more information.
